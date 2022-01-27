@@ -175,7 +175,7 @@
 
         } else if(location.pathname.includes('cart')) {
             // finding this property on cart page as some themes may display hidden properties on cart page
-            jQueryBopis("[data-cart-item-property-name]:contains('pickupstore')").closest('li').hide();
+            jQueryBopis(".cart__text div:contains('pickupstore')").hide();
         }
     }
 
@@ -372,7 +372,7 @@
                 let $storeInformationCard = jQueryBopis(`
                 <div id="hc-store-details">
                     <div id="hc-details-column"><h4 class="hc-store-title">${store.storeName ? store.storeName : ''}</h4><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''} ${store.stateCode ? store.stateCode : ''}, ${store.postalCode ? store.postalCode : ''} ${store.countryCode ? store.countryCode : ''}</p></div>
-                    <div id="hc-details-column"><p>In stock</p><p>${store.storePhone ? store.storePhone : ''}</p><p>${ store.regularHours ? 'Open Today: ' + tConvert(openData(store.regularHours).openTime) + ' - ': ''} ${store.regularHours ? tConvert(openData(store.regularHours).closeTime) : ''}</p></div>
+                    <div id="hc-details-column"><p>In stock</p><p>${store.storePhone ? (store.storePhone).replace(/(\d)(\d\d\d)(\d\d\d)(\d\d\d\d)/, "$1-$2-$3-$4") : ''}</p><p>${ store.regularHours ? 'Open Today: ' + tConvert(openData(store.regularHours).openTime) + ' - ': ''} ${store.regularHours ? tConvert(openData(store.regularHours).closeTime) : ''}</p></div>
                 </div>`);
 
                 let $pickUpButton = jQueryBopis(`<button class="btn btn--secondary-accent hc-store-pick-up-button">${isProductSoldOut ? 'Call Store' : 'Pick Up Here'}</button>`);
@@ -382,7 +382,7 @@
                 $pickUpButton.on("click", isProductSoldOut ? function () {
                     // checking if storePhone is present then only adding the call functionality
                     if (store.storePhone) {
-                        window.location = `tel:${store.storePhone}`
+                        window.location = `tel:${(store.storePhone).replace(/(\d)(\d\d\d)(\d\d\d)(\d\d\d\d)/, "$1-$2-$3-$4")}`
                     }
                 } : updateCart.bind(null, store));
 
@@ -423,7 +423,7 @@
         let facilityIdInput = jQueryBopis(`<input id="hc-store-code" name="properties[_pickupstore]" value=${store.storeCode ? store.storeCode : ''} type="hidden"/>`)
         addToCartForm.append(facilityIdInput)
 
-        let facilityNameInput = jQueryBopis(`<input id="hc-pickupstore-address" name="properties[Pickup Store]" value="${store.storeName ? store.storeName : ''}, ${store.address1 ? store.address1 : ''}, ${store.city ? store.city : ''}" type="hidden"/>`)
+        let facilityNameInput = jQueryBopis(`<input id="hc-pickupstore-address" name="properties[Pickup Store]" value="${store.storeName ? store.storeName : ''}, ${store.address1 ? store.address1 : ''}" type="hidden"/>`)
         addToCartForm.append(facilityNameInput)
 
         // using the cart add endpoint to add the product to cart, as using the theme specific methods is not recommended.
