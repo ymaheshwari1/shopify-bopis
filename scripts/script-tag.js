@@ -12,7 +12,6 @@
     // TODO Generate instance specific code URL in FTL. Used with <#noparse> after this code so that `` code is escaped
     // let baseUrl = '<@ofbizUrl secure="true"></@ofbizUrl>';
     let baseUrl = '';
-    let shopUrl = window.origin;
 
     let loadScript = function(url, callback){
 
@@ -41,7 +40,7 @@
     let style = document.createElement("link");
     style.rel = 'stylesheet';
     style.type = 'text/css';
-    style.href = `${baseUrl}/api/shopify-tag.min.css`;
+    style.href = `${baseUrl}/api/shopify-bopis.min.css`;
 
     document.getElementsByTagName("head")[0].appendChild(style);
 
@@ -96,32 +95,10 @@
         backdrop.remove();
     }
 
-    // TODO: add preorder check
-    function isProductProrderedOrBackordered (virtualId, variantId) {
-        return new Promise(function(resolve, reject) {
-            jQueryBopis.ajax({
-                type: 'GET',
-                // need to update this endpoint to use correct endpoint for checking the product preorder availability
-                url: `${shopUrl}/admin/products/${virtualId}.json`,
-                crossDomain: true,
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                success: function (data) {
-                    const variant = data.product.variants.find((variant) => variant.id == variantId);
-                    isProductSoldOut = variant.inventory_quantity <= 0 && variant.inventory_policy !== 'continue'
-                    if (data.product.tags.includes('Pre-Order') || data.product.tags.includes('Back-Order')) {
-                        resolve(variant.inventory_policy === 'continue')
-                    }
-                    else {
-                        resolve(false)
-                    }
-                },
-                error: function (err) {
-                    reject(err)
-                }
-            })
-        })
+    async function checkProductAvailability (variantId) {
+        await jQueryBopis.getJSON(`${window.location.pathname}.js`, function(product) {
+            isProductSoldOut = !product.variants.find((variant) => variant.id == variantId).available;
+        });
     }
 
     async function initialiseBopis () {
@@ -130,14 +107,14 @@
             await getCurrentLocation();
 
             jQueryBopis(".hc-store-information").remove();
-            jQueryBopis(".hc-open-bopis-modal").remove();
+            jQueryBopis(".hc_action_button").remove();
             jQueryBopis(".hc-bopis-modal").remove();
 
             // TODO Simplify this [name='id']. There is no need to serialize
             const cartForm = jQueryBopis("form[action='/cart/add']");
             const id = cartForm.serializeArray().find(ele => ele.name === "id").value;
 
-            if (await isProductProrderedOrBackordered(meta.product.id, id).catch(err => false)) return;
+            await checkProductAvailability(id);
             
             let $element = jQueryBopis("form[action='/cart/add']");
 
@@ -156,7 +133,7 @@
                 </div>
             </div>`);
 
-            let $btn = jQueryBopis('<button class="btn btn--secondary-accent hc-open-bopis-modal">Pick Up Today</button>');
+            let $btn = jQueryBopis('<button class="button hc_action_button action_button button--add-to-cart">Pick Up Today</button>');
             
             $element.append($btn);
             jQueryBopis("body").append($pickUpModal);
