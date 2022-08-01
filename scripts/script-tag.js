@@ -124,8 +124,8 @@
         });
     }
 
-    async function isProductAvailable(variantSku) {
-        const hasInventoryOnShopify = jQueryBopis("input[class='hc_inventory']").val() > 0
+    async function isProductAvailable() {
+        const hasInventoryOnShopify = jQueryBopis(".hc_inventory").val() > 0
         if (currentProduct && hasInventoryOnShopify) {
             return true;
         }
@@ -152,6 +152,7 @@
       }
     }
 
+    // TODO: remove one of the method in the updated version
     function setUserStorePreference(storeCode, event) {
         localStorage.setItem('hcCurrentStore', storeSelector.val());
         updateCurrentStoreInformation();
@@ -228,6 +229,9 @@
         }
     }
 
+    // Added a separate method to add product to cart as pick up from the PDP, as having issue of the event not
+    // being bind to the updateCart method and thus resulting in error
+    // TODO: check to handle all the add to cart action with the same method.
     function updateCartWithCurrentStore() {
 
         const currentStoreCode = getUserStorePreference();
