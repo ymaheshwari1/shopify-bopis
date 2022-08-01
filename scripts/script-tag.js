@@ -69,7 +69,7 @@
     async function displayStoresToSelect() {
       stores = await getStoreInformation().then(data => data).catch(err => err);
 
-      if (stores && stores.response?.numFound > 0) {
+      if (stores && stores.response && stores.response.numFound > 0) {
         stores.response.docs.map((store) => {
           const option = `<option value="${store.storeCode}">${store.storeName}</option>`
           storeSelector.append(option);
@@ -138,8 +138,8 @@
 
     function updateCurrentStoreInformation() {
       const currentStoreCode = getUserStorePreference();
-      const currentStore = stores?.response?.docs?.find((store) => store.storeCode == currentStoreCode) ?? 'No Store selected';
-      jQueryBopis('#hc-current-store') && jQueryBopis('#hc-current-store').text(currentStore?.storeName);
+      const currentStore = (stores && stores.response && stores.response.docs && stores.response.docs.find((store) => store.storeCode == currentStoreCode)) ?? 'No Store selected';
+      jQueryBopis('#hc-current-store') && currentStore && jQueryBopis('#hc-current-store').text(currentStore.storeName);
       storeSelector.val(currentStore ? currentStoreCode : '');
       if (storesWithInventory) {
           const bopisButtonEnabled = jQueryBopis("#hc-bopis-button > button");
@@ -235,7 +235,7 @@
     function updateCartWithCurrentStore() {
 
         const currentStoreCode = getUserStorePreference();
-        const store = stores?.response?.docs?.find((store) => store.storeCode == currentStoreCode);
+        const store = stores && stores.response && stores.response.docs && stores.response.docs.find((store) => store.storeCode == currentStoreCode);
 
         let addToCartForm = jQueryBopis(".hc-product-form");
 
