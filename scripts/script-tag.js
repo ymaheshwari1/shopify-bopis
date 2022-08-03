@@ -85,7 +85,7 @@
         jQueryBopis("body").append(dropdownBackdrop);
 
         jQueryBopis('#hc-home-store i').remove();
-        const caretUpIcon = jQueryBopis('<i class="fa fa-caret-up"></i>')
+        const caretUpIcon = jQueryBopis('<i class="fa fa-caret-up hc-caret-icon"></i>')
         homeStore.append(caretUpIcon);
 
         // add overflow style to disable background scroll when modal is opened
@@ -95,7 +95,7 @@
 
     function closeStoreModal () {
         jQueryBopis('#hc-home-store i').remove();
-        const caretDownIcon = jQueryBopis('<i class="fa fa-caret-down"></i>')
+        const caretDownIcon = jQueryBopis('<i class="fa fa-caret-down hc-caret-icon"></i>')
         homeStore.append(caretDownIcon);
         jQueryBopis(".hc-store-dropdown")[0].style.display = "none";
         jQueryBopis("body").css("overflow", "scroll");
@@ -103,8 +103,10 @@
     }
 
     function displayStoreInDropdown() {
-        const caretDownIcon = jQueryBopis('<i class="fa fa-caret-down"></i>')
-        homeStore.append(caretDownIcon);
+        if (jQueryBopis('.hc-caret-icon').length == 0) {
+            const caretDownIcon = jQueryBopis('<i class="fa fa-caret-down hc-caret-icon"></i>')
+            homeStore.append(caretDownIcon);
+        }
 
         const currentStore = getUserStorePreference();
         const userHomeStore = stores.response.docs.find((store) => store.storeCode === currentStore);
