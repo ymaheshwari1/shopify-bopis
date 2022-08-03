@@ -137,10 +137,11 @@
     }
 
     function updateCurrentStoreInformation() {
+      storeSelector = storeSelector ? storeSelector : jQueryBopis('#hc-stores')
       const currentStoreCode = getUserStorePreference();
       const currentStore = (stores && stores.response && stores.response.docs && stores.response.docs.find((store) => store.storeCode == currentStoreCode)) ?? 'No Store selected';
       jQueryBopis('#hc-current-store') && currentStore && jQueryBopis('#hc-current-store').text(currentStore.storeName);
-      storeSelector.val(currentStore ? currentStoreCode : '');
+      storeSelector && storeSelector.val(currentStore ? currentStoreCode : '');
       if (storesWithInventory) {
           const bopisButtonEnabled = jQueryBopis("#hc-bopis-button > button");
           const hasInventory = storesWithInventory.some((store) => store.facilityId === currentStoreCode && store.atp > 0);
@@ -225,7 +226,7 @@
 
         } else if(location.pathname.includes('cart')) {
             // finding this property on cart page as some themes may display hidden properties on cart page
-            jQueryBopis("[data-cart-item-property-name]:contains('pickupstore')").closest('li').hide();
+            jQueryBopis && jQueryBopis("[data-cart-item-property-name]:contains('pickupstore')").closest('li').hide();
         }
     }
 
@@ -525,6 +526,17 @@
             updateCurrentStoreInformation();
             initialiseBopis();
         }
+
+        if(jQueryBopis && jQueryBopis("#hc-customer-id").val()) {
+            const customerId = jQueryBopis("#hc-customer-id").val();
+            const customerStore = jQueryBopis("#hc-customer-store").val();
+
+            if (customerId && customerStore) {
+                localStorage.setItem('hcCurrentStore', customerStore);
+                updateCurrentStoreInformation();
+            }
+        }
+
         // added condition to run the script again as when removing a product the script does not run
         // and thus the store id again becomes visible
         if (location.pathname.includes('cart')) initialiseBopis();
