@@ -2,12 +2,13 @@
     let jQueryBopis;
     let $location;
     let backdrop;
+    let dropdownBackdrop;
     let currentProduct;
     let variantSku;
-    let storeSelector;
     let stores;
     let storesWithInventory;
     let productId;
+    let homeStore;
 
     // defining a global object having properties which let merchant configure some behavior
     this.bopisCustomConfig = {
@@ -49,11 +50,17 @@
 
     document.getElementsByTagName("head")[0].appendChild(style);
 
+    let fontAwesome = document.createElement("link");
+    fontAwesome.rel = 'stylesheet';
+    fontAwesome.type = 'text/css';
+    fontAwesome.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css';
+    document.getElementsByTagName("head")[0].appendChild(fontAwesome)
+
     if ((typeof jQuery === 'undefined') || (parseFloat(jQuery.fn['jquery']) < 3.2)) {
         loadScript('//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js', function(){
             jQueryBopis = jQuery.noConflict(true);
             jQueryBopis(document).ready(async function() {
-                storeSelector = jQueryBopis('#hc-stores');
+                homeStore = jQueryBopis('#hc-home-store');
                 await displayStoresToSelect();
                 initialiseBopis();
             });
@@ -62,26 +69,116 @@
     } else {
         jQueryBopis = jQuery;
         jQuery(document).ready(async function() {
-            storeSelector = await jQueryBopis('#hc-stores');
-            displayStoresToSelect();
+            homeStore = jQueryBopis('#hc-home-store');
+            await displayStoresToSelect();
             initialiseBopis();
         });
+    }
+
+    // function will open the modal for the stores information
+    function openStoreModal (event) {
+        const eventTarget = jQueryBopis(event.target);
+
+        // to stop event bubbling when clicking on the Check Stores button
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        dropdownBackdrop = jQueryBopis('<div id="hc-dropdown-backdrop"></div>');
+        jQueryBopis("body").append(dropdownBackdrop);
+
+        jQueryBopis('#hc-home-store i').remove();
+        const caretUpIcon = jQueryBopis('<i class="fa fa-caret-up hc-caret-icon"></i>')
+        homeStore.append(caretUpIcon);
+
+        // add overflow style to disable background scroll when modal is opened
+        jQueryBopis("body").css("overflow", "hidden");
+        jQueryBopis(".hc-store-dropdown")[0].style.display = "block";
+    }
+
+    function closeStoreModal () {
+        jQueryBopis('#hc-home-store i').remove();
+        const caretDownIcon = jQueryBopis('<i class="fa fa-caret-down hc-caret-icon"></i>')
+        homeStore.append(caretDownIcon);
+        jQueryBopis(".hc-store-dropdown")[0].style.display = "none";
+        jQueryBopis("body").css("overflow", "scroll");
+        dropdownBackdrop.remove();
+    }
+
+    function displayStoreInDropdown() {
+        if (jQueryBopis('.hc-caret-icon').length == 0) {
+            const caretDownIcon = jQueryBopis('<i class="fa fa-caret-down hc-caret-icon"></i>')
+            homeStore.append(caretDownIcon);
+        }
+
+        const currentStore = getUserStorePreference();
+        const userHomeStore = stores.response.docs.find((store) => store.storeCode === currentStore);
+        const otherStores = stores.response.docs.filter((store) => store.storeCode !== currentStore);
+
+        jQueryBopis("#hc-store-dropdown") && jQueryBopis("#hc-store-dropdown").remove();
+
+        let $storeDropdown = jQueryBopis(`<div id="hc-store-dropdown" class="hc-store-dropdown">
+            <div class="hc-store-dropdown-content">
+                <div class="hc-store-dropdown-information"></div>
+            </div>
+        </div>`);
+  
+        jQueryBopis("#hc-my-store-bopis").append($storeDropdown);
+
+        if (userHomeStore) {
+            jQueryBopis('#hc-home-store #store').text(userHomeStore.storeName);
+            let $userHomeStoreTitle = jQueryBopis('<h2 class="hc-store-dropdown-title">Home Store:</h2>');
+            jQueryBopis('.hc-store-dropdown-information').append($userHomeStoreTitle);
+  
+            let $storeDropdownCard = jQueryBopis('<div id="hc-store-dropdown-card"></div>');
+            let $storeInformationCard = jQueryBopis(`
+            <div id="hc-store-dropdown-details">
+                <div id="hc-store-dropdown-details-column"><h4 class="hc-store-title">${userHomeStore.storeName ? userHomeStore.storeName : ''}</h4><p>${userHomeStore.address1 ? userHomeStore.address1 : ''}</p><p>${userHomeStore.city ? userHomeStore.city : ''}${userHomeStore.stateCode ? `, ${userHomeStore.stateCode}` : ''}${userHomeStore.postalCode ? `, ${userHomeStore.postalCode}` : ''}${userHomeStore.countryCode ? `, ${userHomeStore.countryCode}` : ''}</p></div>
+                <div id="hc-store-dropdown-details-column"><p>${userHomeStore.storePhone ? userHomeStore.storePhone : ''}</p><p>${ userHomeStore.regularHours ? 'Open Today: ' + tConvert(openData(userHomeStore.regularHours).openTime) + ' - ': ''} ${userHomeStore.regularHours ? tConvert(openData(userHomeStore.regularHours).closeTime) : ''}</p></div>
+            </div>`);
+            
+            $storeDropdownCard.append($storeInformationCard);
+  
+            let $lineBreak = jQueryBopis('<hr/>')
+            $storeDropdownCard.append($lineBreak);
+  
+            jQueryBopis('.hc-store-dropdown-information').append($storeDropdownCard);
+        }
+
+        if (otherStores.length) {
+          let $otherStoresTitle = jQueryBopis(`<h2 class="hc-store-dropdown-title">${userHomeStore ? 'Other Stores:' : 'Select a Store'}</h2>`);
+          jQueryBopis('.hc-store-dropdown-information').append($otherStoresTitle);
+        }
+
+        otherStores.map((store) => {
+          let $storeDropdownCard = jQueryBopis('<div id="hc-store-dropdown-card"></div>');
+          let $storeInformationCard = jQueryBopis(`
+          <div id="hc-store-dropdown-details">
+              <div id="hc-store-dropdown-details-column"><h4 class="hc-store-title">${store.storeName ? store.storeName : ''}</h4><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''}${store.stateCode ? `, ${store.stateCode}` : ''}${store.postalCode ? `, ${store.postalCode}` : ''}${store.countryCode ? `, ${store.countryCode}` : ''}</p></div>
+              <div id="hc-store-dropdown-details-column"><p>${store.storePhone ? store.storePhone : ''}</p><p>${ store.regularHours ? 'Open Today: ' + tConvert(openData(store.regularHours).openTime) + ' - ': ''} ${store.regularHours ? tConvert(openData(store.regularHours).closeTime) : ''}</p></div>
+          </div>`);
+
+          let $setAsHomeStoreButton = jQueryBopis('<div class="hc-home-store-dropdown-button">SET AS HOME STORE</div>');
+          $setAsHomeStoreButton.on("click", setUserStorePreference.bind(null, store.storeCode));
+          
+          $storeDropdownCard.append($storeInformationCard);
+          $storeDropdownCard.append($setAsHomeStoreButton);
+
+          let $lineBreak = jQueryBopis('<hr/>')
+          $storeDropdownCard.append($lineBreak);
+
+          jQueryBopis('.hc-store-dropdown-information').append($storeDropdownCard);
+        })
     }
 
     async function displayStoresToSelect() {
         stores = await getStoreInformation().then(data => data).catch(err => err);
 
-        if (stores && stores.response && stores.response.numFound > 0) {
-          stores.response.docs.map((store) => {
-            const option = `<option value="${store.storeCode}">${store.storeName}</option>`
-            storeSelector.append(option);
-          })
-        }
+      if (stores && stores.response && stores.response.numFound > 0) {
+        displayStoreInDropdown();
+      }
 
-        const currentStore = getUserStorePreference();
-        currentStore && storeSelector.val(currentStore);
-
-        storeSelector.on('change', setUserStorePreference.bind(null, storeSelector.val()));
+      const hcHomeStoreChange = jQueryBopis('#hc-home-store');
+      hcHomeStoreChange.on('click', openStoreModal);
     };
 
     // function to get co-ordinates of the user after successfully getting the location
@@ -135,7 +232,6 @@
         const currentStore = stores.response.docs.find((store) => store.storeCode == currentStoreCode) ? stores.response.docs.find((store) => store.storeCode == currentStoreCode) : 'No Store selected';
         if (productId) {
             jQueryBopis(`#hc-current-store-${productId}`) && jQueryBopis(`#hc-current-store-${productId}`).text(currentStore.storeName);
-            storeSelector.val(currentStore ? currentStoreCode : '');
             if (storesWithInventory) {
                 const bopisButtonEnabled = jQueryBopis(`#hc-bopis-button-${productId} > button`);
                 const hasInventory = storesWithInventory.some((store) => store.facilityId === currentStoreCode && store.atp > 0);
@@ -149,17 +245,25 @@
     }
 
     function setUserStorePreference(storeCode, event) {
-        localStorage.setItem('hcCurrentStore', storeSelector.val());
-        updateCurrentStoreInformation();
-    }
-
-    function setUserStorePreferenceFromPDP(storeCode, event) {
         localStorage.setItem('hcCurrentStore', storeCode);
         updateCurrentStoreInformation();
-        closeBopisModal();
+        displayStoreInDropdown();
+        const eventTargetClass = jQueryBopis(event.target)[0].className;
+        if (eventTargetClass.includes("hc-home-store-button")) {
+            closeBopisModal();
+        } else if (eventTargetClass.includes("hc-home-store-dropdown-button")) {
+            closeStoreModal();
+        }
     }
 
     async function initialiseBopis () {
+        jQueryBopis("body").on('click', function(event) {
+            if (event.target == jQueryBopis("#hc-bopis-modal")[0]) {
+                closeBopisModal();
+            } else if (event.target == jQueryBopis("#hc-dropdown-backdrop")[0]) {
+                closeStoreModal();
+            }
+        })
         if (location.pathname.includes('products')) {
 
             await getCurrentProduct(); // fetch the information for the current product
@@ -224,11 +328,12 @@
 
             jQueryBopis(".hc-close").on('click', closeBopisModal);
             jQueryBopis(".hc-bopis-pick-up-button").on('click', handleAddToCartEvent);
-            jQueryBopis("body").on('click', function(event) {
-                if (event.target == jQueryBopis("#hc-bopis-modal")[0]) {
-                    closeBopisModal();
-                }
-            })
+            // jQueryBopis("body").on('click', function(event) {
+            //     console.log('clicked body');
+            //     if (event.target == jQueryBopis("#hc-bopis-modal")[0]) {
+            //         closeBopisModal();
+            //     }
+            // })
 
             handleAddToCartEvent();
 
@@ -454,8 +559,8 @@
                 let $pickUpButton = jQueryBopis('<button class="btn btn--secondary-accent hc-button hc-store-pick-up-button">Pick Up Here</button>');
                 $pickUpButton.on("click", updateCart.bind(null, store));
 
-                let $myStoreButton = jQueryBopis('<button class="btn btn--secondary-accent hc-button hc-home-store-button">Set as a home store</button>');
-                $myStoreButton.on("click", setUserStorePreferenceFromPDP.bind(null, store.storeCode));
+                let $myStoreButton = jQueryBopis('<button class="btn btn--secondary-accent hc-button hc-home-store-button">SET AS HOME STORE</button>');
+                $myStoreButton.on("click", setUserStorePreference.bind(null, store.storeCode));
 
                 let $buttonWrapper = jQueryBopis('<div class="hc-button-wrapper"></div>');
                 $buttonWrapper.append($pickUpButton);
