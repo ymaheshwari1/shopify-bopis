@@ -287,8 +287,7 @@
 
         let facilityNameInput = jQueryBopis(`<input id="hc-pickupstore-address" name="properties[Store Pickup]" value="${store.storeName ? store.storeName : ''}, ${store.address1 ? store.address1 : ''}, ${store.city ? store.city : ''}" type="hidden"/>`)
         addToCartForm.append(facilityNameInput)
-
-        let productTypeInput = jQueryBopis(`<input id="hc-order-item" name="properties[Note]" value="${productType}" type="hidden"/>`)
+        let productTypeInput = jQueryBopis(`<input id="hc-order-item" name="properties[Note]" value="${productType === 'Pre-Order' ? 'Pre Order' : productType === 'Back-Order' ? 'Back Order' : ''}" type="hidden"/>`)
         if (productType) {
             addToCartForm.append(productTypeInput)
         }
