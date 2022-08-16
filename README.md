@@ -107,4 +107,4 @@ While writing issues, please be as specific as possible. All requests regarding 
 If you have any questions or ideas feel free to join our <a href="https://discord.gg/SwpJnpdyg3" target="_blank">Discord channel</a>
 # The license
 
-Shopify admin helper app is completely free and released under the Apache v2.0 License. Check <a href="https://github.com/hotwax/shopify-bopis/blob/main/LICENSE" target="_blank">LICENSE</a> for more details.
+Shopify bopis app is completely free and released under the Apache v2.0 License. Check <a href="https://github.com/hotwax/shopify-bopis/blob/main/LICENSE" target="_blank">LICENSE</a> for more details.
