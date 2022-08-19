@@ -10,6 +10,8 @@
     let productId;
     let homeStore;
     let result;
+    let customerId;
+    let shopId;
 
     // defining a global object having properties which let merchant configure some behavior
     this.bopisCustomConfig = {
@@ -239,8 +241,9 @@
 
     function updateCurrentStoreInformation() {
         const currentStoreCode = getUserStorePreference();
-        const currentStore = stores.response.docs.find((store) => store.storeCode == currentStoreCode) ? stores.response.docs.find((store) => store.storeCode == currentStoreCode) : 'No Store selected';
+        const currentStore = stores && stores.response.docs.find((store) => store.storeCode == currentStoreCode) ? stores.response.docs.find((store) => store.storeCode == currentStoreCode) : 'No Store selected';
         if (productId) {
+            jQueryBopis('#hc-home-store #store').text(currentStore.storeName);
             jQueryBopis(`#hc-current-store-${productId}`) && jQueryBopis(`#hc-current-store-${productId}`).text(currentStore.storeName);
 
             // Iterating over current-store-pdp elements as we have two occurances of this class in DOM and thus
@@ -267,8 +270,13 @@
         }
     }
 
-    function setUserStorePreference(storeCode, event) {
+    async function setUserStorePreference(storeCode, event) {
         localStorage.setItem('hcCurrentStore', storeCode);
+
+        if (customerId && shopId) {
+            await setCustomerDefaultStore(storeCode);
+        }
+
         updateCurrentStoreInformation();
         displayStoresInDropdown();
         const eventTargetClass = jQueryBopis(event.target)[0].className;
@@ -350,12 +358,6 @@
             bopisButton.on('click', updateCartWithCurrentStore);
 
             jQueryBopis(".hc-bopis-pick-up-button").on('click', handleAddToCartEvent);
-            // jQueryBopis("body").on('click', function(event) {
-            //     console.log('clicked body');
-            //     if (event.target == jQueryBopis("#hc-bopis-modal")[0]) {
-            //         closeBopisModal();
-            //     }
-            // })
 
             handleAddToCartEvent();
 
@@ -666,6 +668,68 @@
         facilityIdInput.remove();
         facilityNameInput.remove();
     }
+
+    async function getCustomerPreferredStore() {
+        let resp;
+
+        // added try catch to handle network related errors
+        try {
+            resp = await new Promise(function(resolve, reject) {
+                jQueryBopis.ajax({
+                    type: 'GET',
+                    url: `${baseUrl}/api/getShopifyCustomerDefaultStore?customerId=${customerId.toString()}&shopifyShopId=${shopId.toString()}`,
+                    crossDomain: true,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    success: function (data) {
+                        resolve(data);
+                    },
+                    error: function (xhr, textStatus, exception) {
+                        reject(textStatus)
+                    }
+                })
+            })
+        } catch (err) {
+            resp = err;
+        }
+        return resp;
+    }
+
+    async function setCustomerDefaultStore(facilityId) {
+        const payload = {
+            'customerId': customerId.toString(),
+            'shopifyShopId': shopId.toString(),
+            'facilityId': facilityId.toString()
+        }
+
+        let resp;
+
+        // added try catch to handle network related errors
+        try {
+            resp = await new Promise(function(resolve, reject) {
+                jQueryBopis.ajax({
+                    type: 'POST',
+                    url: `${baseUrl}/api/setShopifyCustomerDefaultStore`,
+                    crossDomain: true,
+                    data: JSON.stringify(payload),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    success: function (data) {
+                        resolve(data);
+                    },
+                    error: function (xhr, textStatus, exception) {
+                        reject(textStatus)
+                    }
+                })
+            })
+        } catch (err) {
+            resp = err;
+        }
+        return resp;
+    }
+
     // TODO move it to intialise block
     // To check whether the url has changed or not, for making sure that the variant is changed.
     let url = location.href; 
@@ -680,6 +744,22 @@
             productId = ''
             updateCurrentStoreInformation();
             initialiseBopis();
+        }
+
+        // checking if customer id is present in DOM
+        // if the customerId in DOM is different from current customer id then fetch the preferred store
+        if(jQueryBopis && jQueryBopis("#hc-customer-id").val() && jQueryBopis("#hc-customer-id").val() !== customerId) {
+            customerId = jQueryBopis("#hc-customer-id").val();
+            shopId = JSON.parse(jQueryBopis('#shopify-features').text()).shopId;
+            if (customerId && shopId) {
+                const customerStoreResp = await getCustomerPreferredStore();
+                if (customerStoreResp.customer && customerStoreResp.customer.result === 'success') {
+                    await localStorage.setItem('hcCurrentStore', customerStoreResp.customer.facilityId);
+                    updateCurrentStoreInformation();
+                } else {
+                    console.error('Error when getting the customer preferred store');
+                }
+            }
         }
 
         // added condition to run the script again as when removing a product the script does not run
