@@ -756,6 +756,9 @@
                 if (customerStoreResp.customer && customerStoreResp.customer.result === 'success') {
                     await localStorage.setItem('hcCurrentStore', customerStoreResp.customer.facilityId);
                     updateCurrentStoreInformation();
+                } else if (customerStoreResp.customer && customerStoreResp.customer.result === 'error') {
+                    const currentStoreCode = getUserStorePreference();
+                    setCustomerDefaultStore(currentStoreCode);
                 } else {
                     console.error('Error when getting the customer preferred store');
                 }
