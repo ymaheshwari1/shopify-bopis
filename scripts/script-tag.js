@@ -20,7 +20,7 @@
 
     // TODO Generate instance specific code URL in FTL. Used with <#noparse> after this code so that `` code is escaped
     // let baseUrl = '<@ofbizUrl secure="true"></@ofbizUrl>';
-    let baseUrl = 'https://perryellis-uat.hotwax.io';
+    let baseUrl = '';
 
     let loadScript = function(url, callback){
 
@@ -236,7 +236,14 @@
     }
 
     function getUserStorePreference() {
-        return localStorage.getItem('hcCurrentStore');
+        // TODO: remove this check, added this check for backward compatibility
+        if (localStorage.getItem('HC_CURRENT_STORE')) {
+            return localStorage.getItem('HC_CURRENT_STORE');
+        } else {
+            const hcCurrentStore = localStorage.getItem('hcCurrentStore');
+            localStorage.setItem('HC_CURRENT_STORE', hcCurrentStore)
+            return hcCurrentStore;
+        }
     }
 
     function updateCurrentStoreInformation() {
@@ -271,7 +278,7 @@
     }
 
     async function setUserStorePreference(storeCode, event) {
-        localStorage.setItem('hcCurrentStore', storeCode);
+        localStorage.setItem('HC_CURRENT_STORE', storeCode);
 
         if (customerId && shopId) {
             await setCustomerDefaultStore(storeCode);
@@ -754,7 +761,7 @@
             if (customerId && shopId) {
                 const customerStoreResp = await getCustomerPreferredStore();
                 if (customerStoreResp.customer && customerStoreResp.customer.result === 'success') {
-                    await localStorage.setItem('hcCurrentStore', customerStoreResp.customer.facilityId);
+                    await localStorage.setItem('HC_CURRENT_STORE', customerStoreResp.customer.facilityId);
                     updateCurrentStoreInformation();
                 } else if (customerStoreResp.customer && customerStoreResp.customer.result === 'error') {
                     const currentStoreCode = getUserStorePreference();
