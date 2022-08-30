@@ -423,7 +423,8 @@
     function getStoreInformation (queryString) {
         const payload = {
             viewSize: 100,
-            keyword: queryString
+            keyword: queryString,
+            filters: ["storeType: RETAIL_STORE"]
         }
 
         if ($location) {
