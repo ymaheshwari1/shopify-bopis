@@ -15,7 +15,9 @@
 
     // defining a global object having properties which let merchant configure some behavior
     this.bopisCustomConfig = {
-        'enableCartRedirection': true
+        'enableCartRedirection': 'false',
+        'openMiniCart': 'true',
+        ...this.bopisCustomConfig
     };
 
     // TODO Generate instance specific code URL in FTL. Used with <#noparse> after this code so that `` code is escaped
@@ -72,7 +74,7 @@
         });
     } else {
         jQueryBopis = jQuery;
-        jQuery(document).ready(async function() {
+        jQueryBopis(document).ready(async function() {
             homeStore = jQueryBopis('#hc-home-store');
             await displayStoresToSelect();
             initialiseBopis();
@@ -408,6 +410,8 @@
                 // redirecting the user to the cart page after the product gets added to the cart
                 if (bopisCustomConfig.enableCartRedirection) {
                     location.replace('/cart');
+                } else if (bopisCustomConfig.openMiniCart){
+                    bopisCustomConfig.onStorePickUp();
                 }
             }
         })
@@ -668,6 +672,8 @@
                 // redirecting the user to the cart page after the product gets added to the cart
                 if (bopisCustomConfig.enableCartRedirection) {
                     location.replace('/cart');
+                } else if (bopisCustomConfig.openMiniCart){
+                    bopisCustomConfig.onStorePickUp();
                 }
             }
         })
