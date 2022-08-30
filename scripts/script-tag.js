@@ -250,7 +250,7 @@
 
     function updateCurrentStoreInformation() {
         const currentStoreCode = getUserStorePreference();
-        const currentStore = stores && stores.response.docs.find((store) => store.storeCode == currentStoreCode) ? stores.response.docs.find((store) => store.storeCode == currentStoreCode) : 'No Store selected';
+        const currentStore = stores && stores.response && stores.response.docs.find((store) => store.storeCode == currentStoreCode) ? stores.response.docs.find((store) => store.storeCode == currentStoreCode) : 'No Store selected';
         if (productId) {
             jQueryBopis('#hc-home-store #store').text(currentStore.storeName);
             jQueryBopis(`#hc-current-store-${productId}`) && jQueryBopis(`#hc-current-store-${productId}`).text(currentStore.storeName);
@@ -372,7 +372,7 @@
 
         } else if(location.pathname.includes('cart')) {
             // finding this property on cart page as some themes may display hidden properties on cart page
-            jQueryBopis("[data-cart-item-property-name]:contains('pickupstore')").closest('li').hide();
+            jQueryBopis && jQueryBopis("[data-cart-item-property-name]:contains('pickupstore')").closest('li').hide();
         }
     }
 
@@ -584,7 +584,7 @@
 
         //check for result count, result count contains the number of stores count in result
         //TODO: find a better approach to handle the error secenario
-        if (result.length > 0 && !result.includes('error')) {
+        if (result && result.length > 0 && !result.includes('error')) {
             let storesToShow = 3; // adding this for now we will only be displaying first 10 stores having inventory with no infinite scroll / load more option
             const currentStore = getUserStorePreference();
             const userHomeStore = stores && stores.response && stores.response.numFound && stores.response.docs.find((store) => store.storeCode === currentStore);
