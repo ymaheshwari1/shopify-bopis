@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "3.2.3",
+    "@intlify/vue-i18n-loader": "^2.1.0",
     "@shopify/app-bridge": "^2.0.3",
     "@types/jest": "^24.0.19",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
