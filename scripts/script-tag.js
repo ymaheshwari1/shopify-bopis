@@ -440,7 +440,10 @@
                 type: 'POST',
                 url: `${baseUrl}/api/storeLookup`,
                 crossDomain: true,
-                data: payload,
+                data: JSON.stringify(payload),
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 success: function (res) {
                     resolve(res)
                 },
