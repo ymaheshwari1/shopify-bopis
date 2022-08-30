@@ -244,6 +244,7 @@
         } else {
             const hcCurrentStore = localStorage.getItem('hcCurrentStore');
             localStorage.setItem('HC_CURRENT_STORE', hcCurrentStore)
+            updateCurrentStoreInformation(); // TODO: remove the function call as for now it's just used for backward compatibility
             return hcCurrentStore;
         }
     }
@@ -251,6 +252,7 @@
     function updateCurrentStoreInformation() {
         const currentStoreCode = getUserStorePreference();
         const currentStore = stores && stores.response && stores.response.docs.find((store) => store.storeCode == currentStoreCode) ? stores.response.docs.find((store) => store.storeCode == currentStoreCode) : 'No Store selected';
+        localStorage.setItem('HC_CURRENT_STORE_NAME', currentStore.storeName);
         if (productId) {
             jQueryBopis('#hc-home-store #store').text(currentStore.storeName);
             jQueryBopis(`#hc-current-store-${productId}`) && jQueryBopis(`#hc-current-store-${productId}`).text(currentStore.storeName);
