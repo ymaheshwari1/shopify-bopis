@@ -111,12 +111,12 @@
             jQueryBopis(".hc-bopis-modal").remove();
 
             // TODO Simplify this [name='id']. There is no need to serialize
-            const cartForm = jQueryBopis("form[action='/cart/add']");
+            const cartForm = jQueryBopis(".hc-product-form").length > 0 ? jQueryBopis(".hc-product-form") : jQueryBopis("form[action='/cart/add']"); // TODO: remove condition kept for backward compatibility
             const id = cartForm.serializeArray().find(ele => ele.name === "id").value;
 
             await checkProductAvailability(id);
             
-            let $element = jQueryBopis("form[action='/cart/add']");
+            const bopisButton = jQueryBopis("#hc-bopis-button");
 
             let $pickUpModal = jQueryBopis(`<div id="hc-bopis-modal" class="hc-bopis-modal">
                 <div class="hc-modal-content">
@@ -135,10 +135,10 @@
 
             let $btn = jQueryBopis('<button class="button hc_action_button action_button button--add-to-cart">Pick Up Today</button>');
             
-            $element.append($btn);
+            bopisButton.length > 0 ? bopisButton.append($btn) : cartForm.append($btn); // TODO: remove condition, ket it for backward compatibility
             jQueryBopis("body").append($pickUpModal);
 
-            $btn.on('click', openBopisModal);
+            bopisButton.length > 0 ? bopisButton.on('click', openBopisModal) : $btn.on('click', openBopisModal); // TODO: remove condition, ket it for backward compatibility
 
             jQueryBopis(".hc-close").on('click', closeBopisModal);
             jQueryBopis(".hc-bopis-pick-up-button").on('click', handleAddToCartEvent);
@@ -261,7 +261,7 @@
         let storeInformation = await getStoreInformation(queryString).then(data => data).catch(err => err);
         let result = '';
 
-        const id = jQueryBopis("form[action='/cart/add']").serializeArray().find(ele => ele.name === "id").value
+        const id = jQueryBopis(".hc-product-form").length > 0 ? jQueryBopis(".hc-product-form").serializeArray().find(ele => ele.name === "id").value : jQueryBopis("form[action='/cart/add']").serializeArray().find(ele => ele.name === "id").value
         
         // when using the demo instance we will use id as sku, and for dev instance we will use sku
         // const sku = meta.product.variants.find(variant => variant.id == id).sku
@@ -388,7 +388,7 @@
     // will add product to cart with a custom property pickupstore
     function updateCart(store, event) {
 
-        let addToCartForm = jQueryBopis("form[action='/cart/add']");
+        let addToCartForm = jQueryBopis(".hc-product-form").length > 0 ? jQueryBopis(".hc-product-form") : jQueryBopis("form[action='/cart/add']"); // TODO: remove condition kept for backward compatibility
 
         event.preventDefault();
         event.stopImmediatePropagation();

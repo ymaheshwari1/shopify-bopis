@@ -6,6 +6,10 @@ p {
     margin: 0;
 }
 
+.hc_action_button {
+    width: 100%;
+}
+
 .hc-bopis-modal {
     display: none;
     position: fixed;
