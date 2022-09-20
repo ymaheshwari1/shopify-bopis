@@ -1,17 +1,5 @@
 (function () {
-    let jQueryBopis;
-    let $location;
-    let backdrop;
-    let dropdownBackdrop;
-    let currentProduct;
-    let variantSku;
-    let stores;
-    let storesWithInventory;
-    let productId;
-    let homeStore;
-    let result;
-    let customerId;
-    let shopId;
+    let jQueryBopis, $location, dropdownBackdrop, variantSku, stores, storesWithInventory, productId, homeStore, result, customerId, shopId;
 
     // defining a global object having properties which let merchant configure some behavior
     this.bopisCustomConfig = {
@@ -66,6 +54,7 @@
         loadScript('//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js', function(){
             jQueryBopis = jQuery.noConflict(true);
             jQueryBopis(document).ready(async function() {
+                shopId = JSON.parse(jQueryBopis('#shopify-features').text()).shopId;
                 homeStore = jQueryBopis('#hc-home-store');
                 await displayStoresToSelect();
                 initialiseBopis();
@@ -75,10 +64,27 @@
     } else {
         jQueryBopis = jQuery;
         jQueryBopis(document).ready(async function() {
+            shopId = JSON.parse(jQueryBopis('#shopify-features').text()).shopId;
             homeStore = jQueryBopis('#hc-home-store');
             await displayStoresToSelect();
             initialiseBopis();
         });
+    }
+
+    // function returns the name of the store
+    // If we have primaryShopifyShopId for a store then checking for current shop and primaryShop and generating
+    // store name on the basis of the condition
+    function getStoreName(store) {
+        let primaryShopifyShopName = '';
+        let currentShopName = '';
+        let primaryShopifyShopId = store.primaryShopifyShopId;
+
+        if (primaryShopifyShopId && primaryShopifyShopId != shopId && store.shopifyShops) {
+            primaryShopifyShopName = store.primaryFacilityGroupName
+            currentShopName = JSON.parse(store.shopifyShops).find((shop) => shop.shopifyShopId == shopId) ? JSON.parse(store.shopifyShops).find((shop) => shop.shopifyShopId == shopId).name : ''
+        }
+        const storeName = store.storeName ? primaryShopifyShopName ? store.storeName + '<span class="hc-font-s hc-featuring-store"> ' + primaryShopifyShopName + ' featuring ' + storeNameMapping[currentShopName] + '</span>' : store.storeName : ''
+        return storeName;
     }
 
     // function will open the modal for the stores information
@@ -134,11 +140,11 @@
             jQueryBopis('#hc-home-store #store').text(userHomeStore.storeName);
             let $userHomeStoreTitle = jQueryBopis('<h2 class="hc-store-dropdown-title hc-font-xl">Home Store:</h2>');
             jQueryBopis('.hc-store-dropdown-information').append($userHomeStoreTitle);
-  
+
             let $storeDropdownCard = jQueryBopis('<div id="hc-store-dropdown-card"></div>');
             let $storeInformationCard = jQueryBopis(`
             <div id="hc-store-dropdown-details">
-                <div id="hc-store-dropdown-details-column"><h4 class="hc-store-title hc-font-m">${userHomeStore.storeName ? userHomeStore.storeName : ''}</h4><p>${userHomeStore.address1 ? userHomeStore.address1 : ''}</p><p>${userHomeStore.city ? userHomeStore.city : ''}${userHomeStore.stateCode ? `, ${userHomeStore.stateCode}` : ''}${userHomeStore.postalCode ? `, ${userHomeStore.postalCode}` : ''}${userHomeStore.countryCode ? `, ${userHomeStore.countryCode}` : ''}</p></div>
+                <div id="hc-store-dropdown-details-column"><h4 class="hc-store-title hc-font-m">${getStoreName(userHomeStore)}</h4><p>${userHomeStore.address1 ? userHomeStore.address1 : ''}</p><p>${userHomeStore.city ? userHomeStore.city : ''}${userHomeStore.stateCode ? `, ${userHomeStore.stateCode}` : ''}${userHomeStore.postalCode ? `, ${userHomeStore.postalCode}` : ''}${userHomeStore.countryCode ? `, ${userHomeStore.countryCode}` : ''}</p></div>
                 <div id="hc-store-dropdown-details-column"><p>${userHomeStore.storePhone ? userHomeStore.storePhone : ''}</p><p>${ userHomeStore.regularHours ? 'Open Today: ' + tConvert(openData(userHomeStore.regularHours).openTime) + ' - ': ''} ${userHomeStore.regularHours ? tConvert(openData(userHomeStore.regularHours).closeTime) : ''}</p></div>
             </div>`);
             
@@ -159,7 +165,7 @@
           let $storeDropdownCard = jQueryBopis('<div id="hc-store-dropdown-card"></div>');
           let $storeInformationCard = jQueryBopis(`
           <div id="hc-store-dropdown-details">
-              <div id="hc-store-dropdown-details-column"><h4 class="hc-store-title hc-font-m">${store.storeName ? store.storeName : ''}</h4><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''}${store.stateCode ? `, ${store.stateCode}` : ''}${store.postalCode ? `, ${store.postalCode}` : ''}${store.countryCode ? `, ${store.countryCode}` : ''}</p></div>
+              <div id="hc-store-dropdown-details-column"><h4 class="hc-store-title hc-font-m">${getStoreName(store)}</h4><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''}${store.stateCode ? `, ${store.stateCode}` : ''}${store.postalCode ? `, ${store.postalCode}` : ''}${store.countryCode ? `, ${store.countryCode}` : ''}</p></div>
               <div id="hc-store-dropdown-details-column"><p>${store.storePhone ? store.storePhone : ''}</p><p>${ store.regularHours ? 'Open Today: ' + tConvert(openData(store.regularHours).openTime) + ' - ': ''} ${store.regularHours ? tConvert(openData(store.regularHours).closeTime) : ''}</p></div>
           </div>`);
 
@@ -231,22 +237,8 @@
         jQueryBopis(`.hc-store-information-pdp-${productId}`) && (jQueryBopis(`.hc-store-information-pdp-${productId}`)[0].style.display = "none");
     }
 
-    async function getCurrentProduct() {
-        await jQueryBopis.getJSON(`${window.location.pathname}.js`, function(product) {
-            currentProduct = product;
-        });
-    }
-
     function getUserStorePreference() {
-        // TODO: remove this check, added this check for backward compatibility
-        if (localStorage.getItem('HC_CURRENT_STORE')) {
-            return localStorage.getItem('HC_CURRENT_STORE');
-        } else {
-            const hcCurrentStore = localStorage.getItem('hcCurrentStore');
-            localStorage.setItem('HC_CURRENT_STORE', hcCurrentStore)
-            updateCurrentStoreInformation(); // TODO: remove the function call as for now it's just used for backward compatibility
-            return hcCurrentStore;
-        }
+        return localStorage.getItem('HC_CURRENT_STORE') ? localStorage.getItem('HC_CURRENT_STORE') : '';
     }
 
     function updateCurrentStoreInformation() {
@@ -309,7 +301,6 @@
         if (location.pathname.includes('products')) {
             // Add this to always hide the bopis selector on PDP for initial page load, or variant change
             // closeBopisSelectorInline();
-            await getCurrentProduct(); // fetch the information for the current product
             await getCurrentLocation();
 
             if (jQueryBopis('div[id^=ProductSection-]').length == 1) {
@@ -424,7 +415,7 @@
 
     function getStoreInformation (queryString) {
         const payload = {
-            viewSize: 100,
+            viewSize: 20,
             keyword: queryString,
             filters: ["storeType: RETAIL_STORE"]
         }
@@ -432,6 +423,10 @@
         if ($location) {
             payload["distance"] = 50
             payload["point"] = `${$location.latitude}, ${$location.longitude}`
+        }
+
+        if (shopId) {
+            payload.filters.push(`shopifyShop_id: ${shopId}`)
         }
 
         // applied a condition that if we have location permission then searching the stores for the current location
@@ -504,7 +499,7 @@
         }
 
         const queryString = jQueryBopis("#hc-bopis-store-pin").val();
-        let storeInformation = queryString || $location ?  await getStoreInformation(queryString).then(data => data).catch(err => err) : stores;
+        let storeInformation = queryString || $location ? await getStoreInformation(queryString).then(data => data).catch(err => err) : stores;
 
         const sku = variantSku;
 
@@ -587,7 +582,7 @@
         //check for result count, result count contains the number of stores count in result
         //TODO: find a better approach to handle the error secenario
         if (result && result.length > 0 && !result.includes('error')) {
-            let storesToShow = 3; // adding this for now we will only be displaying first 10 stores having inventory with no infinite scroll / load more option
+            let storesToShow = 20; // adding this for now we will only be displaying first 10 stores having inventory with no infinite scroll / load more option
             const currentStore = getUserStorePreference();
             const userHomeStore = stores && stores.response && stores.response.numFound && stores.response.docs.find((store) => store.storeCode === currentStore);
             const userHomeStoreHasInventory = result.some((store) => store.storeCode === currentStore)
@@ -599,7 +594,7 @@
                 let $storeCard = jQueryBopis('<div id="hc-store-card"></div>');
                 let $storeInformationCard = jQueryBopis(`
                 <div id="hc-store-details">
-                    <div id="hc-details-column"><h4 class="hc-store-title hc-font-m">${userHomeStore.storeName ? userHomeStore.storeName : ''}</h4><p>${userHomeStore.address1 ? userHomeStore.address1 : ''}</p><p>${userHomeStore.city ? userHomeStore.city : ''}</p><p>${userHomeStore.storePhone ? userHomeStore.storePhone : ''}</p><p>${ userHomeStore.regularHours ? 'Open Today: ' + tConvert(openData(userHomeStore.regularHours).openTime) + ' - ': ''} ${userHomeStore.regularHours ? tConvert(openData(userHomeStore.regularHours).closeTime) : ''}</p></div>
+                    <div id="hc-details-column"><h4 class="hc-store-title hc-font-m">${getStoreName(userHomeStore)}</h4><p>${userHomeStore.address1 ? userHomeStore.address1 : ''}</p><p>${userHomeStore.city ? userHomeStore.city : ''}</p><p>${userHomeStore.storePhone ? userHomeStore.storePhone : ''}</p><p>${ userHomeStore.regularHours ? 'Open Today: ' + tConvert(openData(userHomeStore.regularHours).openTime) + ' - ': ''} ${userHomeStore.regularHours ? tConvert(openData(userHomeStore.regularHours).closeTime) : ''}</p></div>
                     <div id="hc-details-column" class="hc-font-m" style="flex-shrink: 0; text-align: end;"><p class="hc-text-uppercase" style="color: #529058;">${userHomeStoreHasInventory ? 'In stock' : ''}</p></div>
                 </div>`);
 
@@ -615,11 +610,11 @@
                         let $storeCard = jQueryBopis('<div id="hc-store-card"></div>');
                         let $storeInformationCard = jQueryBopis(`
                         <div id="hc-store-details">
-                            <div id="hc-details-column"><h4 class="hc-store-title hc-font-m">${store.storeName ? store.storeName : ''}</h4><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''}</p><p>${store.storePhone ? store.storePhone : ''}</p><p>${ store.regularHours ? 'Open Today: ' + tConvert(openData(store.regularHours).openTime) + ' - ': ''} ${store.regularHours ? tConvert(openData(store.regularHours).closeTime) : ''}</p></div>
+                            <div id="hc-details-column"><h4 class="hc-store-title hc-font-m">${getStoreName(store)}</h4><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''}</p><p>${store.storePhone ? store.storePhone : ''}</p><p>${ store.regularHours ? 'Open Today: ' + tConvert(openData(store.regularHours).openTime) + ' - ': ''} ${store.regularHours ? tConvert(openData(store.regularHours).closeTime) : ''}</p></div>
                             <div id="hc-details-column" class="hc-font-m" style="flex-shrink: 0; text-align: end;"><p class="hc-store-pick-up-button hc-pointer hc-text-uppercase" style="color: #2A64C5;">Pick up today</p><p class="hc-text-uppercase" style="color: #529058;">In stock</p></div>
                         </div>`);
 
-                        let $myStoreButton = jQueryBopis('<div class="hc-home-store-pdp-button hc-pointer hc-text-uppercase hc-font-s">SET AS HOME STORE</div>');
+                        let $myStoreButton = jQueryBopis('<div class="hc-home-store-pdp-button hc-pointer hc-text-uppercase hc-font-s" style="color: #C59A2A">SET AS HOME STORE</div>');
                         $myStoreButton.on("click", setUserStorePreference.bind(null, store.storeCode));
 
                         let $lineBreak = jQueryBopis('<hr/>')
@@ -769,7 +764,6 @@
         // if the customerId in DOM is different from current customer id then fetch the preferred store
         if(jQueryBopis && jQueryBopis("#hc-customer-id").val() && jQueryBopis("#hc-customer-id").val() !== customerId) {
             customerId = jQueryBopis("#hc-customer-id").val();
-            shopId = JSON.parse(jQueryBopis('#shopify-features').text()).shopId;
             if (customerId && shopId) {
                 const customerStoreResp = await getCustomerPreferredStore();
                 if (customerStoreResp.customer && customerStoreResp.customer.result === 'success') {

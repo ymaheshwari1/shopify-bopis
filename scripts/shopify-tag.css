@@ -209,6 +209,12 @@ p {
   text-transform: uppercase;
 }
 
+.hc-featuring-store {
+    text-transform: none;
+    font-weight: 300;
+    letter-spacing: 0;
+}
+
 @media (min-width: 997px) {
     .hc-modal-content {
         width: 50%;
