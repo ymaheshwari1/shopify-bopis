@@ -8,6 +8,13 @@
         ...this.bopisCustomConfig
     };
 
+    // stored mapping as we are not getting correct store name in the response
+    let storeNameMapping = {
+        '26508132412': 'Cubavera',
+        '10224533555': 'Original Penguin',
+        '10862657599': 'Perry Ellis'
+    }
+
     // TODO Generate instance specific code URL in FTL. Used with <#noparse> after this code so that `` code is escaped
     // let baseUrl = '<@ofbizUrl secure="true"></@ofbizUrl>';
     let baseUrl = '';
@@ -76,14 +83,12 @@
     // store name on the basis of the condition
     function getStoreName(store) {
         let primaryShopifyShopName = '';
-        let currentShopName = '';
         let primaryShopifyShopId = store.primaryShopifyShopId;
 
         if (primaryShopifyShopId && primaryShopifyShopId != shopId && store.shopifyShops) {
             primaryShopifyShopName = store.primaryFacilityGroupName
-            currentShopName = JSON.parse(store.shopifyShops).find((shop) => shop.shopifyShopId == shopId) ? JSON.parse(store.shopifyShops).find((shop) => shop.shopifyShopId == shopId).name : ''
         }
-        const storeName = store.storeName ? primaryShopifyShopName ? store.storeName + '<span class="hc-font-s hc-featuring-store"> ' + primaryShopifyShopName + ' featuring ' + storeNameMapping[currentShopName] + '</span>' : store.storeName : ''
+        const storeName = store.storeName ? primaryShopifyShopName ? store.storeName + '<span class="hc-font-s hc-featuring-store"> ' + primaryShopifyShopName + ' featuring ' + storeNameMapping[shopId] + '</span>' : store.storeName : ''
         return storeName;
     }
 
@@ -137,7 +142,8 @@
         jQueryBopis("#hc-my-store-bopis").append($storeDropdown);
 
         if (userHomeStore) {
-            jQueryBopis('#hc-home-store #store').text(userHomeStore.storeName);
+            const homeStoreName = userHomeStore.storeName + ' ' + (openData(userHomeStore.timings).open && openData(userHomeStore.timings).close ? `(Open from ${openData(userHomeStore.timings).open} to ${openData(userHomeStore.timings).close})` : '(Closed Today)')
+            jQueryBopis('#hc-home-store #store').text(homeStoreName);
             let $userHomeStoreTitle = jQueryBopis('<h2 class="hc-store-dropdown-title hc-font-xl">Home Store:</h2>');
             jQueryBopis('.hc-store-dropdown-information').append($userHomeStoreTitle);
 
@@ -145,7 +151,7 @@
             let $storeInformationCard = jQueryBopis(`
             <div id="hc-store-dropdown-details">
                 <div id="hc-store-dropdown-details-column"><h4 class="hc-store-title hc-font-m">${getStoreName(userHomeStore)}</h4><p>${userHomeStore.address1 ? userHomeStore.address1 : ''}</p><p>${userHomeStore.city ? userHomeStore.city : ''}${userHomeStore.stateCode ? `, ${userHomeStore.stateCode}` : ''}${userHomeStore.postalCode ? `, ${userHomeStore.postalCode}` : ''}${userHomeStore.countryCode ? `, ${userHomeStore.countryCode}` : ''}</p></div>
-                <div id="hc-store-dropdown-details-column"><p>${userHomeStore.storePhone ? userHomeStore.storePhone : ''}</p><p>${ userHomeStore.regularHours ? 'Open Today: ' + tConvert(openData(userHomeStore.regularHours).openTime) + ' - ': ''} ${userHomeStore.regularHours ? tConvert(openData(userHomeStore.regularHours).closeTime) : ''}</p></div>
+                <div id="hc-store-dropdown-details-column"><p>${userHomeStore.storePhone ? userHomeStore.storePhone : ''}</p><p>${ openData(userHomeStore.timings).open ? 'Open Today: ' + openData(userHomeStore.timings).open + ' - ': ''} ${ openData(userHomeStore.timings).close ? openData(userHomeStore.timings).close : ''}</p></div>
             </div>`);
             
             $storeDropdownCard.append($storeInformationCard);
@@ -166,7 +172,7 @@
           let $storeInformationCard = jQueryBopis(`
           <div id="hc-store-dropdown-details">
               <div id="hc-store-dropdown-details-column"><h4 class="hc-store-title hc-font-m">${getStoreName(store)}</h4><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''}${store.stateCode ? `, ${store.stateCode}` : ''}${store.postalCode ? `, ${store.postalCode}` : ''}${store.countryCode ? `, ${store.countryCode}` : ''}</p></div>
-              <div id="hc-store-dropdown-details-column"><p>${store.storePhone ? store.storePhone : ''}</p><p>${ store.regularHours ? 'Open Today: ' + tConvert(openData(store.regularHours).openTime) + ' - ': ''} ${store.regularHours ? tConvert(openData(store.regularHours).closeTime) : ''}</p></div>
+              <div id="hc-store-dropdown-details-column"><p>${store.storePhone ? store.storePhone : ''}</p><p>${ openData(store.timings).open ? 'Open Today: ' + openData(store.timings).open + ' - ': ''} ${ openData(store.timings).close ? openData(store.timings).close : ''}</p></div>
           </div>`);
 
           let $setAsHomeStoreButton = jQueryBopis('<div class="hc-home-store-dropdown-button hc-pointer" style="color: #C59A2A">SET AS HOME STORE</div>');
@@ -186,6 +192,9 @@
         stores = await getStoreInformation().then(data => data).catch(err => err);
 
       if (stores && stores.response && stores.response.numFound > 0) {
+        stores.response.docs.map((store) => {
+            store.timings = getStoreTiming(store);
+        })
         displayStoresInDropdown();
       }
 
@@ -246,7 +255,8 @@
         const currentStore = stores && stores.response && stores.response.docs.find((store) => store.storeCode == currentStoreCode) ? stores.response.docs.find((store) => store.storeCode == currentStoreCode) : 'No Store selected';
         localStorage.setItem('HC_CURRENT_STORE_NAME', currentStore.storeName);
         if (productId) {
-            jQueryBopis('#hc-home-store #store').text(currentStore.storeName);
+            const homeStoreName = currentStore.storeName + ' ' + (openData(currentStore.timings).open && openData(currentStore.timings).close ? `(Open from ${openData(currentStore.timings).open} to ${openData(currentStore.timings).close})` : '(Closed Today)')
+            jQueryBopis('#hc-home-store #store').text(homeStoreName);
             jQueryBopis(`#hc-current-store-${productId}`) && jQueryBopis(`#hc-current-store-${productId}`).text(currentStore.storeName);
 
             // Iterating over current-store-pdp elements as we have two occurances of this class in DOM and thus
@@ -510,6 +520,10 @@
         if (storeInformation && storeInformation.response && storeInformation.response.numFound > 0) {
 
             let storeCodes = storeInformation.response.docs.map((store) => {
+
+                // added this condition to handle the case when we will fetch specific stores for PDP page
+                store.timings = store.timings ? store.timings : getStoreTiming(store);
+
                 let storeCode = '';
 
                 // if storeCode starts with DC_ then removing the code
@@ -546,14 +560,14 @@
     }
 
     function getDay () {
-        let days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+        let days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         let date = new Date();
         let dayName = days[date.getDay()];
         return dayName;
     }
 
-    function openData (regularHours) {
-        return regularHours.periods.find(period => period.openDay === getDay());
+    function openData (timing) {
+        return timing[getDay()];
     }
 
     function tConvert (time) {
@@ -568,6 +582,40 @@
             }
             return time.join(''); // return adjusted time or original string
         }
+    }
+
+    // function returns the open and close timing for a store
+    function getStoreTiming(store) {
+        let days = {'sunday': {}, 'monday': {}, 'tuesday': {}, 'wednesday': {}, 'thursday': {}, 'friday': {}, 'saturday': {}};
+
+        let ob = {
+            ...store,
+            "monday_open":"05:30:00",
+            "monday_close":"13:30:00",
+            "tuesday_open":"06:00:00",
+            "tuesday_close":"14:00:00",
+            "wednesday_open":"05:45:00",
+            "wednesday_close":"13:45:00",
+            "thursday_open":"07:00:00",
+            "thursday_close":"15:00:00",
+            "friday_open":"07:30:00",
+            "friday_close":"15:30:00",
+            "saturday_open":"07:00:00",
+            "saturday_close":"15:00:00"
+        }
+
+        const storeTimingDays = Object.keys(ob).filter((key) => key.includes('open') || key.includes('close'));
+
+        return storeTimingDays.reduce((obj, key) => {
+            const time = ob[key];
+            if (key.includes('open')) {
+                obj[key.replace('_open', '')]['open'] = tConvert(time)
+            }
+            if (key.includes('close')) {
+                obj[key.replace('_close', '')]['close'] = tConvert(time)
+            }
+            return obj;
+        }, days)
     }
 
     // will check for the inventory for the product stock and if available then display the information on the UI
@@ -594,7 +642,7 @@
                 let $storeCard = jQueryBopis('<div id="hc-store-card"></div>');
                 let $storeInformationCard = jQueryBopis(`
                 <div id="hc-store-details">
-                    <div id="hc-details-column"><h4 class="hc-store-title hc-font-m">${getStoreName(userHomeStore)}</h4><p>${userHomeStore.address1 ? userHomeStore.address1 : ''}</p><p>${userHomeStore.city ? userHomeStore.city : ''}</p><p>${userHomeStore.storePhone ? userHomeStore.storePhone : ''}</p><p>${ userHomeStore.regularHours ? 'Open Today: ' + tConvert(openData(userHomeStore.regularHours).openTime) + ' - ': ''} ${userHomeStore.regularHours ? tConvert(openData(userHomeStore.regularHours).closeTime) : ''}</p></div>
+                    <div id="hc-details-column"><h4 class="hc-store-title hc-font-m">${getStoreName(userHomeStore)}</h4><p>${userHomeStore.address1 ? userHomeStore.address1 : ''}</p><p>${userHomeStore.city ? userHomeStore.city : ''}</p><p>${userHomeStore.storePhone ? userHomeStore.storePhone : ''}</p><p>${ openData(userHomeStore.timings).open ? 'Open Today: ' + openData(userHomeStore.timings).open + ' - ': ''} ${openData(userHomeStore.timings).close ? openData(userHomeStore.timings).close : ''}</p></div>
                     <div id="hc-details-column" class="hc-font-m" style="flex-shrink: 0; text-align: end;"><p class="hc-text-uppercase" style="color: #529058;">${userHomeStoreHasInventory ? 'In stock' : ''}</p></div>
                 </div>`);
 
@@ -610,7 +658,7 @@
                         let $storeCard = jQueryBopis('<div id="hc-store-card"></div>');
                         let $storeInformationCard = jQueryBopis(`
                         <div id="hc-store-details">
-                            <div id="hc-details-column"><h4 class="hc-store-title hc-font-m">${getStoreName(store)}</h4><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''}</p><p>${store.storePhone ? store.storePhone : ''}</p><p>${ store.regularHours ? 'Open Today: ' + tConvert(openData(store.regularHours).openTime) + ' - ': ''} ${store.regularHours ? tConvert(openData(store.regularHours).closeTime) : ''}</p></div>
+                            <div id="hc-details-column"><h4 class="hc-store-title hc-font-m">${getStoreName(store)}</h4><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''}</p><p>${store.storePhone ? store.storePhone : ''}</p><p>${ openData(store.timings).open ? 'Open Today: ' + openData(store.timings).open + ' - ': ''} ${openData(store.timings).close ? openData(store.timings).close : ''}</p></div>
                             <div id="hc-details-column" class="hc-font-m" style="flex-shrink: 0; text-align: end;"><p class="hc-store-pick-up-button hc-pointer hc-text-uppercase" style="color: #2A64C5;">Pick up today</p><p class="hc-text-uppercase" style="color: #529058;">In stock</p></div>
                         </div>`);
 

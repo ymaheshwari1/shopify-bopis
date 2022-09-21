@@ -61,7 +61,7 @@ p {
     position: absolute;
     z-index: 2001;
     left: 0;
-    width: 100%;
+    width: 150%;
 }
 
 .hc-store-dropdown-content {
@@ -150,8 +150,6 @@ p {
 
 #hc-my-store-bopis {
     position: relative;
-    width: 30%;
-    margin-top: 15px;
 }
 
 #hc-dropdown-backdrop {
