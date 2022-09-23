@@ -590,26 +590,10 @@
     function getStoreTiming(store) {
         let days = {'sunday': {}, 'monday': {}, 'tuesday': {}, 'wednesday': {}, 'thursday': {}, 'friday': {}, 'saturday': {}};
 
-        let ob = {
-            ...store,
-            "monday_open":"05:30:00",
-            "monday_close":"13:30:00",
-            "tuesday_open":"06:00:00",
-            "tuesday_close":"14:00:00",
-            "wednesday_open":"05:45:00",
-            "wednesday_close":"13:45:00",
-            "thursday_open":"07:00:00",
-            "thursday_close":"15:00:00",
-            "friday_open":"07:30:00",
-            "friday_close":"15:30:00",
-            "saturday_open":"07:00:00",
-            "saturday_close":"15:00:00"
-        }
-
-        const storeTimingDays = Object.keys(ob).filter((key) => key.includes('open') || key.includes('close'));
+        const storeTimingDays = Object.keys(store).filter((key) => key.includes('open') || key.includes('close'));
 
         return storeTimingDays.reduce((obj, key) => {
-            const time = ob[key];
+            const time = store[key];
             if (key.includes('open')) {
                 obj[key.replace('_open', '')]['open'] = tConvert(time)
             }
