@@ -10,5 +10,13 @@ module.exports = {
       fullInstall: true,
       enableInSFC: true
     }
+  },
+  configureWebpack: {
+    optimization: {
+      splitChunks: false
+    },
+  },
+  css: {
+    extract: false
   }
 }

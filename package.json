@@ -6,6 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "buildScript": "npx gulp",
+    "buildBopisPDP": "vue-cli-service build src/bopisPDP.ts",
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
     "lint": "vue-cli-service lint",
@@ -40,6 +41,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "3.2.3",
+    "@intlify/vue-i18n-loader": "^2.1.0",
     "@shopify/app-bridge": "^2.0.3",
     "@types/jest": "^24.0.19",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
@@ -59,6 +61,7 @@
     "gulp": "^4.0.2",
     "gulp-minify": "^3.1.0",
     "typescript": "^4.3.5",
+    "vue-cli-plugin-i18n": "^1.0.1",
     "vue-jest": "^5.0.0-0"
   }
 }
