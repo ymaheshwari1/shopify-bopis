@@ -217,11 +217,11 @@
         // this will create a url param like &facilityId=store_1&facilityId=store_1 which is then sent
         // with the url, used this approach as unable to send array in the url params and also unable to
         // pass body as the request type is GET.
-        let paramFacilityId = '';
-        payload[0].facilityId.map((facility) => {
-            paramFacilityId += `&facilityId=${facility}`
-        })
-        const viewSize = payload[0].facilityId.length
+        let paramFacilityId = payload.facilityIds.reduce((paramFacilityId ,facilityId) => {
+            paramFacilityId += `&facilityId=${facilityId}`
+            return paramFacilityId
+        }, '')
+        const viewSize = payload.facilityIds.length
 
         let resp;
 
@@ -230,7 +230,7 @@
             resp = await new Promise(function(resolve, reject) {
                 jQueryBopis.ajax({
                     type: 'GET',
-                    url: `${baseUrl}/api/checkInventory?sku=${payload[0].sku}${paramFacilityId}&viewSize=${viewSize}`,
+                    url: `${baseUrl}/api/checkInventory?sku=${payload.sku}${paramFacilityId}&viewSize=${viewSize}`,
                     crossDomain: true,
                     headers: {
                         'Content-Type': 'application/json'
@@ -286,7 +286,7 @@
             })
 
             // passing the facilityId as an array in the payload
-            let payload = [{"sku" : sku, "facilityId": storeCodes}];
+            let payload = {"sku" : sku, "facilityIds": storeCodes};
             result = await checkInventory(payload)
 
             // mapping the inventory result with the locations to filter those stores whose inventory
