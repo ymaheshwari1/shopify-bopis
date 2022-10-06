@@ -153,8 +153,14 @@
             <div id="hc-store-dropdown-details">
                 <div id="hc-store-dropdown-details-column"><p>${userHomeStore.address1 ? userHomeStore.address1 : ''}</p><p>${userHomeStore.city ? userHomeStore.city : ''}${userHomeStore.stateCode ? `, ${userHomeStore.stateCode}` : ''}${userHomeStore.postalCode ? `, ${userHomeStore.postalCode}` : ''}${userHomeStore.countryCode ? `, ${userHomeStore.countryCode}` : ''}</p></div>
                 <div id="hc-store-dropdown-details-column"><p>${userHomeStore.storePhone ? userHomeStore.storePhone : ''}</p><p>${ openData(userHomeStore.timings).open ? 'Open Today: ' + openData(userHomeStore.timings).open + ' - ': ''} ${ openData(userHomeStore.timings).close ? openData(userHomeStore.timings).close : ''}</p></div>
-            </div>`);
-            
+            </div>
+            <p id="hc-store-hours">Store Hours <i class="fa fa-caret-down hc-caret-icon" style="cursor: pointer;"></i></p>
+            `);
+
+            let storeWeeklyTiming = ''
+            Object.entries(getWeeklyStoreTimings(userHomeStore.timings)).map(([day, timing]) => storeWeeklyTiming += `<p>${day}: ${timing}</p>`)
+
+            $storeInformationCard.append(jQueryBopis(`<div id="hc-store-timings">${storeWeeklyTiming}</div>`));
             $storeDropdownCard.append($storeInformationCard);
   
             let $lineBreak = jQueryBopis('<hr/>')
@@ -164,29 +170,35 @@
         }
 
         if (otherStores.length) {
-          let $otherStoresTitle = jQueryBopis(`<h2 class="hc-store-dropdown-title hc-font-xl">${userHomeStore ? 'Other Stores:' : 'Select a Store'}</h2>`);
-          jQueryBopis('.hc-store-dropdown-information').append($otherStoresTitle);
+            let $otherStoresTitle = jQueryBopis(`<h2 class="hc-store-dropdown-title hc-font-xl">${userHomeStore ? 'Other Stores:' : 'Select a Store'}</h2>`);
+            jQueryBopis('.hc-store-dropdown-information').append($otherStoresTitle);
         }
 
         otherStores.map((store) => {
-          let $storeDropdownCard = jQueryBopis('<div id="hc-store-dropdown-card"></div>');
-          let $storeInformationCard = jQueryBopis(`
-          <h4 class="hc-store-title hc-font-m">${getStoreName(store)}</h4>
-          <div id="hc-store-dropdown-details">
-              <div id="hc-store-dropdown-details-column"><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''}${store.stateCode ? `, ${store.stateCode}` : ''}${store.postalCode ? `, ${store.postalCode}` : ''}${store.countryCode ? `, ${store.countryCode}` : ''}</p></div>
-              <div id="hc-store-dropdown-details-column"><p>${store.storePhone ? store.storePhone : ''}</p><p>${ openData(store.timings).open ? 'Open Today: ' + openData(store.timings).open + ' - ': ''} ${ openData(store.timings).close ? openData(store.timings).close : ''}</p></div>
-          </div>`);
+            let $storeDropdownCard = jQueryBopis('<div id="hc-store-dropdown-card"></div>');
+            let $storeInformationCard = jQueryBopis(`
+            <h4 class="hc-store-title hc-font-m">${getStoreName(store)}</h4>
+            <div id="hc-store-dropdown-details">
+                <div id="hc-store-dropdown-details-column"><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''}${store.stateCode ? `, ${store.stateCode}` : ''}${store.postalCode ? `, ${store.postalCode}` : ''}${store.countryCode ? `, ${store.countryCode}` : ''}</p></div>
+                <div id="hc-store-dropdown-details-column"><p>${store.storePhone ? store.storePhone : ''}</p><p>${ openData(store.timings).open ? 'Open Today: ' + openData(store.timings).open + ' - ': ''} ${ openData(store.timings).close ? openData(store.timings).close : ''}</p></div>
+            </div>
+            <p id="hc-store-hours">Store Hours <i class="fa fa-caret-down hc-caret-icon" style="cursor: pointer;"></i></p>`);
 
-          let $setAsHomeStoreButton = jQueryBopis('<div class="hc-home-store-dropdown-button hc-pointer" style="color: #C59A2A">SET AS HOME STORE</div>');
-          $setAsHomeStoreButton.on("click", setUserStorePreference.bind(null, store.storeCode));
+            let $setAsHomeStoreButton = jQueryBopis('<div class="hc-home-store-dropdown-button hc-pointer" style="color: #C59A2A">SET AS HOME STORE</div>');
+            $setAsHomeStoreButton.on("click", setUserStorePreference.bind(null, store.storeCode));
 
-          $storeDropdownCard.append($storeInformationCard);
-          $storeDropdownCard.append($setAsHomeStoreButton);
+            let storeWeeklyTiming = ''
+            Object.entries(getWeeklyStoreTimings(userHomeStore.timings)).map(([day, timing]) => storeWeeklyTiming += `<p>${day}: ${timing}</p>`)
 
-          let $lineBreak = jQueryBopis('<hr/>')
-          $storeDropdownCard.append($lineBreak);
+            $storeInformationCard.append(jQueryBopis(`<div id="hc-store-timings">${storeWeeklyTiming}</div>`));
 
-          jQueryBopis('.hc-store-dropdown-information').append($storeDropdownCard);
+            $storeDropdownCard.append($storeInformationCard);
+            $storeDropdownCard.append($setAsHomeStoreButton);
+
+            let $lineBreak = jQueryBopis('<hr/>')
+            $storeDropdownCard.append($lineBreak);
+
+            jQueryBopis('.hc-store-dropdown-information').append($storeDropdownCard);
         })
     }
 
@@ -570,6 +582,51 @@
 
     function openData (timing) {
         return timing[getDay()];
+    }
+
+    function getWeeklyStoreTimings(timings) {
+        let days = {'monday': 'Mon', 'tuesday': 'Tue', 'wednesday': 'Wed', 'thursday': 'Thu', 'friday': 'Fri', 'saturday': 'Sat', 'sunday': 'Sun'}
+        let startDay = '';
+        let endDay = '';
+        let previousTime = '';
+        const weeklyTiming = {};
+
+        Object.keys(timings).map((day) => {
+            // preparing time for a day
+            const time = `${timings[day].open} - ${timings[day].close}`
+
+            // if current time is not available in weeklyTime then add the day in weekly timing
+            // Also checking that if we have startDay and
+            // endDay already then adding that in the weeklyTime and making startDay and endDay again empty
+            if (!weeklyTiming[time]) {
+                startDay && endDay && weeklyTiming[previousTime].push(`${startDay} - ${endDay}`)
+                startDay = endDay = '';
+
+                weeklyTiming[time] = [days[day]];
+                previousTime = time;
+            } else {
+                if (time === previousTime) {
+                    startDay = startDay ? startDay : weeklyTiming[time].pop();
+                    endDay = days[day];
+                } else {
+                    startDay && endDay && weeklyTiming[previousTime].push(`${startDay} - ${endDay}`)
+                    weeklyTiming[time].push(days[day]);
+                    previousTime = time;
+                    startDay = endDay = '';
+                }
+            }
+        })
+
+        // if we have startDay and endDay then adding both in the weeklyTiming
+        // This condition is written in order to handle the case when the last iteration and previous iteration
+        // will have the same time
+        startDay && endDay && weeklyTiming[previousTime].push(`${startDay} - ${endDay}`);
+
+        return Object.keys(weeklyTiming).reduce((storeWeeklyTimings, timing) => {
+            const days = weeklyTiming[timing];
+            days.map((day) => storeWeeklyTimings[day] = timing);
+            return storeWeeklyTimings;
+        }, {})
     }
 
     function tConvert (time) {
