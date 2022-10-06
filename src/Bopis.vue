@@ -7,9 +7,10 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, ref } from 'vue';
+import { defineComponent, onMounted, onUnmounted, ref } from 'vue';
 import StoreLocator from '@/components/StoreLocator.vue'
 import axios from 'axios'
+import emitter from './event-bus';
 
 export default defineComponent({
   name: 'Bopis',
@@ -45,13 +46,11 @@ export default defineComponent({
     }
 
     async function getCurrentProduct() {
-      console.log(window.location.origin + window.location.pathname)
       const product = await axios.get(`${window.location.origin + window.location.pathname}.js`)
       currentProduct.value = product.data
     }
 
     function isProductProrderedOrBackordered (variantId) {
-      console.log(currentProduct.value, variantId, 'currentProduct.value')
       if (currentProduct.value.tags.includes('HC:Pre-Order') || currentProduct.value.tags.includes('HC:Backorder')) {
         return currentProduct.value.variants.find((variant) => variant.id == variantId.value).inventory_policy === 'continue'
       }
@@ -59,8 +58,8 @@ export default defineComponent({
     }
 
     onMounted(async () => {
+      emitter.on('closeBopisModal', closeBopisModal)
 
-      console.log('app mounted');
       document.getElementsByTagName('body')[0].addEventListener('click', function(event) {
         if (event.target == document.getElementsByClassName('hc-bopis-modal')[0]) {
           closeBopisModal(event);
@@ -78,6 +77,10 @@ export default defineComponent({
       if(!isProductProrderedOrBackordered(productId)) {
         isProductAvailableForBopis.value = true
       }
+    })
+
+    onUnmounted(() => {
+      emitter.off('closeBopisModal', closeBopisModal)
     })
 
     return {
