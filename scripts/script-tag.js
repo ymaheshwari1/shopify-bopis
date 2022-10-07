@@ -2,6 +2,7 @@
     let jQueryBopis;
     let $location;
     let backdrop;
+    let currentProduct;
 
     // defining a global object having properties which let merchant configure some behavior
     this.bopisCustomConfig = {
@@ -94,31 +95,44 @@
         backdrop.remove();
     }
 
-    async function isProductProrderedOrBackordered (variantId) {
+    async function getCurrentProduct() {
         await jQueryBopis.getJSON(`${window.location.pathname}.js`, function(product) {
-            if (product.tags.includes('HC:Pre-Order') || product.tags.includes('HC:Backorder')) {
-                return product.variants.find((variant) => variant.id == variantId).inventory_policy === 'continue'
-            }
-            return false;
+            currentProduct = product;
         });
+    }
+
+    async function isProductAvailable(variantSku) {
+        const hasInventoryOnShopify = jQueryBopis("input.hc_inventory").val() > 0
+        return !!currentProduct && (hasInventoryOnShopify || currentProduct.variants.find((variant) => variant.sku == variantSku).inventory_policy === 'continue')
+    }
+
+    async function isProductProrderedOrBackordered (variantSku) {
+        if (currentProduct.tags.includes('HC:Pre-Order') || currentProduct.tags.includes('HC:Backorder')) {
+            return currentProduct.variants.find((variant) => variant.sku == variantSku).inventory_policy === 'continue'
+        }
+        return false;
     }
 
     async function initialiseBopis () {
         if (location.pathname.includes('products')) {
-
+            await getCurrentProduct(); // fetch the information for the current product
             await getCurrentLocation();
 
             jQueryBopis(".hc-store-information").remove();
-            jQueryBopis(".hc-open-bopis-modal").remove();
             jQueryBopis(".hc-bopis-modal").remove();
 
             // TODO Simplify this [name='id']. There is no need to serialize
             const cartForm = jQueryBopis(".hc-product-form");
-            const id = cartForm.serializeArray().find(ele => ele.name === "hc-product-sku").value;
+            const sku = jQueryBopis("input.hc_product_sku").val();
+
+            // Do not enable BOPIS when the current product is not available
+            if(!(await isProductAvailable(sku))) return;
 
             const bopisButton = jQueryBopis("#hc-bopis-button");
+            const existingBopisButton = jQueryBopis("#hc-bopis-button > button");
 
-            if (await isProductProrderedOrBackordered(meta.product.id, id).catch(err => false)) return;
+            // check if the product is Pre-order or backorder and having continue selling enabled and if yes, then do not enable bopis
+            if (await isProductProrderedOrBackordered(meta.product.id, sku).catch(err => false)) return;
 
             let $pickUpModal = jQueryBopis(`<div id="hc-bopis-modal" class="hc-bopis-modal">
                 <div class="hc-modal-content">
@@ -135,8 +149,12 @@
                 </div>
             </div>`);
 
-            let $btn = jQueryBopis('<button class="btn btn--full hc-open-bopis-modal">Pick Up Today</button>');
-            bopisButton.append($btn);
+            // check if the element with id hc-bopis-button has button element in it then don't add button
+            if (existingBopisButton.length == 0) {
+                let $btn = jQueryBopis('<button class="btn btn--secondary-accent hc-open-bopis-modal">Pick Up Today</button>');
+                bopisButton.append($btn);
+            }
+
             jQueryBopis("body").append($pickUpModal);
 
             bopisButton.on('click', openBopisModal);
@@ -192,11 +210,11 @@
         // this will create a url param like &facilityId=store_1&facilityId=store_1 which is then sent
         // with the url, used this approach as unable to send array in the url params and also unable to
         // pass body as the request type is GET.
-        let paramFacilityId = '';
-        payload[0].facilityId.map((facility) => {
-            paramFacilityId += `&facilityId=${facility}`
-        })
-        const viewSize = payload[0].facilityId.length
+        let paramFacilityId = payload.facilityIds.reduce((paramFacilityId ,facilityId) => {
+            paramFacilityId += `&facilityId=${facilityId}`
+            return paramFacilityId
+        }, '')
+        const viewSize = payload.facilityIds.length
 
         let resp;
 
@@ -205,7 +223,7 @@
             resp = await new Promise(function(resolve, reject) {
                 jQueryBopis.ajax({
                     type: 'GET',
-                    url: `${baseUrl}/api/checkInventory?sku=${payload[0].sku}${paramFacilityId}&viewSize=${viewSize}`,
+                    url: `${baseUrl}/api/checkInventory?sku=${payload.sku}${paramFacilityId}&viewSize=${viewSize}`,
                     crossDomain: true,
                     headers: {
                         'Content-Type': 'application/json'
@@ -238,11 +256,7 @@
         let storeInformation = await getStoreInformation(queryString).then(data => data).catch(err => err);
         let result = '';
 
-        const id = jQueryBopis(".hc-product-form").serializeArray().find(ele => ele.name === "hc-product-sku").value
-        
-        // when using the demo instance we will use id as sku, and for dev instance we will use sku
-        // const sku = meta.product.variants.find(variant => variant.id == id).sku
-        const sku = id;
+        const sku = jQueryBopis("input.hc_product_sku").val();
 
         jQueryBopis('#hc-store-card').remove();
         if (event) eventTarget.prop("disabled", true);
@@ -265,7 +279,7 @@
             })
 
             // passing the facilityId as an array in the payload
-            let payload = [{"sku" : sku, "facilityId": storeCodes}];
+            let payload = {"sku" : sku, "facilityIds": storeCodes};
             result = await checkInventory(payload)
 
             // mapping the inventory result with the locations to filter those stores whose inventory
@@ -325,7 +339,7 @@
                 let $storeCard = jQueryBopis('<div id="hc-store-card"></div>');
                 let $storeInformationCard = jQueryBopis(`
                 <div id="hc-store-details">
-                    <div id="hc-details-column"><h4 class="hc-store-title">${store.storeName ? store.storeName : ''}</h4><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''} ${store.stateCode ? store.stateCode : ''} ${store.postalCode ? store.postalCode : ''} ${store.countryCode ? store.countryCode : ''}</p></div>
+                    <div id="hc-details-column"><h4 class="hc-store-title">${store.storeName ? store.storeName : ''}</h4><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''} ${store.stateCode ? `, ${store.stateCode}` : ''} ${store.postalCode ? `, ${store.postalCode}` : ''} ${store.countryCode ? `, ${store.countryCode}` : ''}</p></div>
                     <div id="hc-details-column"><p>In stock</p><p>${store.storePhone ? store.storePhone : ''}</p><p>${ store.regularHours ? 'Open Today: ' + tConvert(openData(store.regularHours).openTime) + ' - ': ''} ${store.regularHours ? tConvert(openData(store.regularHours).closeTime) : ''}</p></div>
                 </div>`);
 
@@ -369,7 +383,7 @@
         let facilityIdInput = jQueryBopis(`<input id="hc-store-code" name="properties[_pickupstore]" value=${store.storeCode ? store.storeCode : ''} type="hidden"/>`)
         addToCartForm.append(facilityIdInput)
 
-        let facilityNameInput = jQueryBopis(`<input id="hc-pickupstore-address" name="properties[Pickup Store]" value="${store.storeName ? store.storeName : ''}, ${store.address1 ? store.address1 : ''}, ${store.city ? store.city : ''}" type="hidden"/>`)
+        let facilityNameInput = jQueryBopis(`<input id="hc-pickupstore-address" name="properties[Pickup Store]" value="${store.storeName ? store.storeName : ''} ${store.address1 ? `, ${store.address1}` : ''} ${store.city ? `, ${store.city}` : ''}" type="hidden"/>`)
         addToCartForm.append(facilityNameInput)
 
         // using the cart add endpoint to add the product to cart, as using the theme specific methods is not recommended.
