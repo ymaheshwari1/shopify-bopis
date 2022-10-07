@@ -153,15 +153,25 @@
             <div id="hc-store-dropdown-details">
                 <div id="hc-store-dropdown-details-column"><p>${userHomeStore.address1 ? userHomeStore.address1 : ''}</p><p>${userHomeStore.city ? userHomeStore.city : ''}${userHomeStore.stateCode ? `, ${userHomeStore.stateCode}` : ''}${userHomeStore.postalCode ? `, ${userHomeStore.postalCode}` : ''}${userHomeStore.countryCode ? `, ${userHomeStore.countryCode}` : ''}</p></div>
                 <div id="hc-store-dropdown-details-column"><p>${userHomeStore.storePhone ? userHomeStore.storePhone : ''}</p><p>${ openData(userHomeStore.timings).open ? 'Open Today: ' + openData(userHomeStore.timings).open + ' - ': ''} ${ openData(userHomeStore.timings).close ? openData(userHomeStore.timings).close : ''}</p></div>
-            </div>
-            <p id="hc-store-hours">Store Hours <i class="fa fa-caret-down hc-caret-icon" style="cursor: pointer;"></i></p>
-            `);
+            </div>`);
+
+            // created div as directly adding timing in card resulting in distorted UI, due to overriding the style
+            // from the theme
+            let $storeActions = jQueryBopis('<div id="hc-store-actions" style="margin-top: 10px"></div>')
 
             let storeWeeklyTiming = ''
             Object.entries(getWeeklyStoreTimings(userHomeStore.timings)).map(([day, timing]) => storeWeeklyTiming += `<p>${day}: ${timing}</p>`)
 
-            $storeInformationCard.append(jQueryBopis(`<div id="hc-store-timings">${storeWeeklyTiming}</div>`));
+            const storeTiming = jQueryBopis(`
+                <div id="hc-store-timings">
+                    <p>Store Hours: </p>${storeWeeklyTiming}
+                </div>
+            `);
+
+            $storeActions.append(storeTiming);
+
             $storeDropdownCard.append($storeInformationCard);
+            $storeDropdownCard.append($storeActions);
   
             let $lineBreak = jQueryBopis('<hr/>')
             $storeDropdownCard.append($lineBreak);
@@ -181,19 +191,28 @@
             <div id="hc-store-dropdown-details">
                 <div id="hc-store-dropdown-details-column"><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''}${store.stateCode ? `, ${store.stateCode}` : ''}${store.postalCode ? `, ${store.postalCode}` : ''}${store.countryCode ? `, ${store.countryCode}` : ''}</p></div>
                 <div id="hc-store-dropdown-details-column"><p>${store.storePhone ? store.storePhone : ''}</p><p>${ openData(store.timings).open ? 'Open Today: ' + openData(store.timings).open + ' - ': ''} ${ openData(store.timings).close ? openData(store.timings).close : ''}</p></div>
-            </div>
-            <p id="hc-store-hours">Store Hours <i class="fa fa-caret-down hc-caret-icon" style="cursor: pointer;"></i></p>`);
+            </div>`);
+
+            let $storeActions = jQueryBopis('<div id="hc-store-actions" style="margin-top: 10px;"></div>')
 
             let $setAsHomeStoreButton = jQueryBopis('<div class="hc-home-store-dropdown-button hc-pointer" style="color: #C59A2A">SET AS HOME STORE</div>');
             $setAsHomeStoreButton.on("click", setUserStorePreference.bind(null, store.storeCode));
 
             let storeWeeklyTiming = ''
-            Object.entries(getWeeklyStoreTimings(userHomeStore.timings)).map(([day, timing]) => storeWeeklyTiming += `<p>${day}: ${timing}</p>`)
+            Object.entries(getWeeklyStoreTimings(store.timings)).map(([day, timing]) => storeWeeklyTiming += `<p>${day}: ${timing}</p>`)
 
-            $storeInformationCard.append(jQueryBopis(`<div id="hc-store-timings">${storeWeeklyTiming}</div>`));
+            const storeTiming = jQueryBopis(`
+                <p>Store Hours: </p>
+                <div id="hc-store-timings">
+                    ${storeWeeklyTiming}
+                </div>
+            `);
+
+            $storeActions.append(storeTiming);
+            $storeActions.append($setAsHomeStoreButton);
 
             $storeDropdownCard.append($storeInformationCard);
-            $storeDropdownCard.append($setAsHomeStoreButton);
+            $storeDropdownCard.append($storeActions);
 
             let $lineBreak = jQueryBopis('<hr/>')
             $storeDropdownCard.append($lineBreak);
