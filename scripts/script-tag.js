@@ -593,7 +593,7 @@
     }
 
     function getDay () {
-        let days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        let days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         let date = new Date();
         let dayName = days[date.getDay()];
         return dayName;
@@ -665,7 +665,7 @@
 
     // function returns the open and close timing for a store
     function getStoreTiming(store) {
-        let days = {'sunday': {}, 'monday': {}, 'tuesday': {}, 'wednesday': {}, 'thursday': {}, 'friday': {}, 'saturday': {}};
+        let days = {'monday': {}, 'tuesday': {}, 'wednesday': {}, 'thursday': {}, 'friday': {}, 'saturday': {}, 'sunday': {}};
 
         const storeTimingDays = Object.keys(store).filter((key) => key.includes('open') || key.includes('close'));
 
