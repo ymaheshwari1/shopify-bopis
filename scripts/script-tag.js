@@ -102,7 +102,7 @@
     }
 
     async function isProductAvailable(variantSku) {
-        const hasInventoryOnShopify = jQueryBopis("input[class='hc_inventory']").val() > 0
+        const hasInventoryOnShopify = jQueryBopis("input.hc_inventory").val() > 0
         if (currentProduct) {
             if (hasInventoryOnShopify) {
                 return true;
@@ -130,13 +130,13 @@
 
             // TODO Simplify this [name='id']. There is no need to serialize
             const cartForm = jQueryBopis(".hc-product-form");
-            const sku = jQueryBopis("input[class='hc_product_sku']").val();
+            const sku = jQueryBopis("input.hc_product_sku").val();
 
             // Do not enable BOPIS when the current product is not available
             if(!(await isProductAvailable(sku))) return;
 
             const bopisButton = jQueryBopis("#hc-bopis-button");
-            const bopisButtonEnabled = jQueryBopis("#hc-bopis-button > button");
+            const existingBopisButton = jQueryBopis("#hc-bopis-button > button");
 
             // check if the product is Pre-order or backorder and having continue selling enabled and if yes, then do not enable bopis
             if (await isProductProrderedOrBackordered(meta.product.id, sku).catch(err => false)) return;
@@ -157,7 +157,7 @@
             </div>`);
 
             // check if the element with id hc-bopis-button has button element in it then don't add button
-            if (bopisButtonEnabled.length == 0) {
+            if (existingBopisButton.length == 0) {
                 let $btn = jQueryBopis('<button class="btn btn--secondary-accent hc-open-bopis-modal">Pick Up Today</button>');
                 bopisButton.append($btn);
             }
@@ -263,7 +263,7 @@
         let storeInformation = await getStoreInformation(queryString).then(data => data).catch(err => err);
         let result = '';
 
-        const sku = jQueryBopis("input[class='hc_product_sku']").val();
+        const sku = jQueryBopis("input.hc_product_sku").val();
 
         jQueryBopis('#hc-store-card').remove();
         if (event) eventTarget.prop("disabled", true);
