@@ -103,14 +103,7 @@
 
     async function isProductAvailable(variantSku) {
         const hasInventoryOnShopify = jQueryBopis("input.hc_inventory").val() > 0
-        if (currentProduct) {
-            if (hasInventoryOnShopify) {
-                return true;
-            } else {
-                return currentProduct.variants.find((variant) => variant.sku == variantSku).inventory_policy === 'continue'
-            }
-        }
-        return false;
+        return !!currentProduct && (hasInventoryOnShopify || currentProduct.variants.find((variant) => variant.sku == variantSku).inventory_policy === 'continue')
     }
 
     async function isProductProrderedOrBackordered (variantSku) {
