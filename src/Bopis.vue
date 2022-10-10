@@ -1,24 +1,18 @@
 <template>
   <div>
     <button v-show="isProductAvailableForBopis" class="btn btn--full hc-open-bopis-modal" @click="openBopisModal">Pick Up Today</button>
-    <div id="hc-backdrop" v-show="isStoreLocatorOpened" />
-    <StoreLocator ref="hcStoreLocator" v-show="isStoreLocatorOpened"/>
   </div>
 </template>
 
 <script>
 import { defineComponent, onMounted, onUnmounted, ref } from 'vue';
-import StoreLocator from '@/components/StoreLocator.vue'
 import axios from 'axios'
 import emitter from './event-bus';
+import { bopisModalInstance } from './bopisPDP';
 
 export default defineComponent({
   name: 'Bopis',
-  components: {
-    StoreLocator
-  },
   setup() {
-    const isStoreLocatorOpened = ref(false);
     const currentProduct = ref(null);
     const isProductAvailableForBopis = ref(false);
     const productId = ref('');
@@ -28,7 +22,7 @@ export default defineComponent({
       event.preventDefault();
       event.stopImmediatePropagation();
 
-      isStoreLocatorOpened.value = true;
+      bopisModalInstance.isStoreLocatorOpened = true;
 
       // add overflow style to disable background scroll when modal is opened
       document.getElementsByTagName("body")[0].style.overflow = 'hidden'
@@ -39,7 +33,7 @@ export default defineComponent({
       event.preventDefault();
       event.stopImmediatePropagation();
 
-      isStoreLocatorOpened.value = false;
+      bopisModalInstance.isStoreLocatorOpened = false;
 
       // add overflow style to disable background scroll when modal is opened
       document.getElementsByTagName("body")[0].style.overflow = 'scroll'
@@ -86,8 +80,7 @@ export default defineComponent({
     return {
       closeBopisModal,
       openBopisModal,
-      isProductAvailableForBopis,
-      isStoreLocatorOpened
+      isProductAvailableForBopis
     }
   }
 });
