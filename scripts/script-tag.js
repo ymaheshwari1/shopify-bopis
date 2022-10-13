@@ -144,7 +144,7 @@
         if (userHomeStore) {
             const homeStoreName = userHomeStore.storeName + ' ' + (openData(userHomeStore.timings).open && openData(userHomeStore.timings).close ? `(Open from ${openData(userHomeStore.timings).open} to ${openData(userHomeStore.timings).close})` : '(Closed Today)')
             jQueryBopis('#hc-home-store #store').text(homeStoreName);
-            let $userHomeStoreTitle = jQueryBopis('<h2 class="hc-store-dropdown-title hc-font-xl">Home Store:</h2>');
+            let $userHomeStoreTitle = jQueryBopis('<h2 class="hc-store-dropdown-title hc-font-xl">My Store:</h2>');
             jQueryBopis('.hc-store-dropdown-information').append($userHomeStoreTitle);
 
             let $storeDropdownCard = jQueryBopis('<div id="hc-store-dropdown-card"></div>');
@@ -195,7 +195,7 @@
 
             let $storeActions = jQueryBopis('<div id="hc-store-actions" style="margin-top: 10px;"></div>')
 
-            let $setAsHomeStoreButton = jQueryBopis('<div class="hc-home-store-dropdown-button hc-pointer" style="color: #C59A2A">SET AS HOME STORE</div>');
+            let $setAsHomeStoreButton = jQueryBopis('<div class="hc-home-store-dropdown-button hc-pointer" style="color: #C59A2A">SET AS MY STORE</div>');
             $setAsHomeStoreButton.on("click", setUserStorePreference.bind(null, store.storeCode));
 
             let storeWeeklyTiming = ''
@@ -701,7 +701,7 @@
 
             if (userHomeStore) {
                 storesToShow--;
-                jQueryBopis(`.hc-store-information-pdp-${productId}`).append('<hr/><span class="hc-font-s">My Home Store:</span>')
+                jQueryBopis(`.hc-store-information-pdp-${productId}`).append('<hr/><span class="hc-font-s">My Store:</span>')
                 let $storeCard = jQueryBopis('<div id="hc-store-card"></div>');
                 let $storeInformationCard = jQueryBopis(`
                 <h4 class="hc-store-title hc-font-m">${getStoreName(userHomeStore)}</h4>
@@ -724,10 +724,10 @@
                         <h4 class="hc-store-title hc-font-m">${getStoreName(store)}</h4>
                         <div id="hc-store-details">
                             <div id="hc-details-column"><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''}${store.stateCode ? `, ${store.stateCode}` : ''}</p><p>${store.storePhone ? store.storePhone : ''}</p><p>${ openData(store.timings).open ? 'Open Today: ' + openData(store.timings).open + ' - ': ''} ${openData(store.timings).close ? openData(store.timings).close : ''}</p></div>
-                            <div id="hc-details-column" class="hc-font-m" style="flex-shrink: 0; text-align: end;"><p class="hc-store-pick-up-button hc-pointer hc-text-uppercase" style="color: #2A64C5;">Pick up today</p><p class="hc-text-uppercase" style="color: #529058;">In stock</p></div>
+                            <div id="hc-details-column" class="hc-font-m" style="flex-shrink: 0; text-align: end;"><p class="hc-store-pick-up-button hc-pointer hc-text-uppercase" style="color: #2A64C5;">Pick up in store</p><p class="hc-text-uppercase" style="color: #529058;">In stock</p></div>
                         </div>`);
 
-                        let $myStoreButton = jQueryBopis('<div class="hc-home-store-pdp-button hc-pointer hc-text-uppercase hc-font-s" style="color: #C59A2A">SET AS HOME STORE</div>');
+                        let $myStoreButton = jQueryBopis('<div class="hc-home-store-pdp-button hc-pointer hc-text-uppercase hc-font-s" style="color: #C59A2A">SET AS MY STORE</div>');
                         $myStoreButton.on("click", setUserStorePreference.bind(null, store.storeCode));
 
                         let $lineBreak = jQueryBopis('<hr/>')
