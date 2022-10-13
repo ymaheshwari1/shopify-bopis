@@ -157,21 +157,21 @@
 
             // created div as directly adding timing in card resulting in distorted UI, due to overriding the style
             // from the theme
-            let $storeActions = jQueryBopis('<div id="hc-store-actions" style="margin-top: 10px"></div>')
+            // let $storeActions = jQueryBopis('<div id="hc-store-actions" style="margin-top: 10px"></div>')
 
-            let storeWeeklyTiming = ''
-            Object.entries(getWeeklyStoreTimings(userHomeStore.timings)).map(([day, timing]) => storeWeeklyTiming += `<p>${day}: ${timing}</p>`)
+            // let storeWeeklyTiming = ''
+            // Object.entries(getWeeklyStoreTimings(userHomeStore.timings)).map(([day, timing]) => storeWeeklyTiming += `<p>${day}: ${timing}</p>`)
 
-            const storeTiming = jQueryBopis(`
-                <div id="hc-store-timings">
-                    <p>Store Hours: </p>${storeWeeklyTiming}
-                </div>
-            `);
+            // const storeTiming = jQueryBopis(`
+            //     <div id="hc-store-timings">
+            //         <p>Store Hours: </p>${storeWeeklyTiming}
+            //     </div>
+            // `);
 
-            $storeActions.append(storeTiming);
+            // $storeActions.append(storeTiming);
 
             $storeDropdownCard.append($storeInformationCard);
-            $storeDropdownCard.append($storeActions);
+            // $storeDropdownCard.append($storeActions);
   
             let $lineBreak = jQueryBopis('<hr/>')
             $storeDropdownCard.append($lineBreak);
@@ -193,26 +193,26 @@
                 <div id="hc-store-dropdown-details-column"><p>${store.storePhone ? store.storePhone : ''}</p><p>${ openData(store.timings).open ? 'Open Today: ' + openData(store.timings).open + ' - ': ''} ${ openData(store.timings).close ? openData(store.timings).close : ''}</p></div>
             </div>`);
 
-            let $storeActions = jQueryBopis('<div id="hc-store-actions" style="margin-top: 10px;"></div>')
+            // let $storeActions = jQueryBopis('<div id="hc-store-actions" style="margin-top: 10px;"></div>')
 
             let $setAsHomeStoreButton = jQueryBopis('<div class="hc-home-store-dropdown-button hc-pointer" style="color: #C59A2A">SET AS MY STORE</div>');
             $setAsHomeStoreButton.on("click", setUserStorePreference.bind(null, store.storeCode));
 
-            let storeWeeklyTiming = ''
-            Object.entries(getWeeklyStoreTimings(store.timings)).map(([day, timing]) => storeWeeklyTiming += `<p>${day}: ${timing}</p>`)
+            // let storeWeeklyTiming = ''
+            // Object.entries(getWeeklyStoreTimings(store.timings)).map(([day, timing]) => storeWeeklyTiming += `<p>${day}: ${timing}</p>`)
 
-            const storeTiming = jQueryBopis(`
-                <p>Store Hours: </p>
-                <div id="hc-store-timings">
-                    ${storeWeeklyTiming}
-                </div>
-            `);
+            // const storeTiming = jQueryBopis(`
+            //     <p>Store Hours: </p>
+            //     <div id="hc-store-timings">
+            //         ${storeWeeklyTiming}
+            //     </div>
+            // `);
 
-            $storeActions.append(storeTiming);
-            $storeActions.append($setAsHomeStoreButton);
+            // $storeActions.append(storeTiming);
+            // $storeActions.append($setAsHomeStoreButton);
 
             $storeDropdownCard.append($storeInformationCard);
-            $storeDropdownCard.append($storeActions);
+            $storeDropdownCard.append($setAsHomeStoreButton);
 
             let $lineBreak = jQueryBopis('<hr/>')
             $storeDropdownCard.append($lineBreak);
@@ -586,6 +586,8 @@
 
                 updateCurrentStoreInformation();
             }
+        } else { // assigning empty array to result variable when there are no stores found
+            result = [];
         }
 
         displayStoreInformation(result)
@@ -603,50 +605,50 @@
         return timing[getDay()];
     }
 
-    function getWeeklyStoreTimings(timings) {
-        let days = {'monday': 'Mon', 'tuesday': 'Tue', 'wednesday': 'Wed', 'thursday': 'Thu', 'friday': 'Fri', 'saturday': 'Sat', 'sunday': 'Sun'}
-        let startDay = '';
-        let endDay = '';
-        let previousTime = '';
-        const weeklyTiming = {};
+    // function getWeeklyStoreTimings(timings) {
+    //     let days = {'monday': 'Mon', 'tuesday': 'Tue', 'wednesday': 'Wed', 'thursday': 'Thu', 'friday': 'Fri', 'saturday': 'Sat', 'sunday': 'Sun'}
+    //     let startDay = '';
+    //     let endDay = '';
+    //     let previousTime = '';
+    //     const weeklyTiming = {};
 
-        Object.keys(timings).map((day) => {
-            // preparing time for a day
-            const time = `${timings[day].open} - ${timings[day].close}`
+    //     Object.keys(timings).map((day) => {
+    //         // preparing time for a day
+    //         const time = `${timings[day].open} - ${timings[day].close}`
 
-            // if current time is not available in weeklyTime then add the day in weekly timing
-            // Also checking that if we have startDay and
-            // endDay already then adding that in the weeklyTime and making startDay and endDay again empty
-            if (!weeklyTiming[time]) {
-                startDay && endDay && weeklyTiming[previousTime].push(`${startDay} - ${endDay}`)
-                startDay = endDay = '';
+    //         // if current time is not available in weeklyTime then add the day in weekly timing
+    //         // Also checking that if we have startDay and
+    //         // endDay already then adding that in the weeklyTime and making startDay and endDay again empty
+    //         if (!weeklyTiming[time]) {
+    //             startDay && endDay && weeklyTiming[previousTime].push(`${startDay} - ${endDay}`)
+    //             startDay = endDay = '';
 
-                weeklyTiming[time] = [days[day]];
-                previousTime = time;
-            } else {
-                if (time === previousTime) {
-                    startDay = startDay ? startDay : weeklyTiming[time].pop();
-                    endDay = days[day];
-                } else {
-                    startDay && endDay && weeklyTiming[previousTime].push(`${startDay} - ${endDay}`)
-                    weeklyTiming[time].push(days[day]);
-                    previousTime = time;
-                    startDay = endDay = '';
-                }
-            }
-        })
+    //             weeklyTiming[time] = [days[day]];
+    //             previousTime = time;
+    //         } else {
+    //             if (time === previousTime) {
+    //                 startDay = startDay ? startDay : weeklyTiming[time].pop();
+    //                 endDay = days[day];
+    //             } else {
+    //                 startDay && endDay && weeklyTiming[previousTime].push(`${startDay} - ${endDay}`)
+    //                 weeklyTiming[time].push(days[day]);
+    //                 previousTime = time;
+    //                 startDay = endDay = '';
+    //             }
+    //         }
+    //     })
 
-        // if we have startDay and endDay then adding both in the weeklyTiming
-        // This condition is written in order to handle the case when the last iteration and previous iteration
-        // will have the same time
-        startDay && endDay && weeklyTiming[previousTime].push(`${startDay} - ${endDay}`);
+    //     // if we have startDay and endDay then adding both in the weeklyTiming
+    //     // This condition is written in order to handle the case when the last iteration and previous iteration
+    //     // will have the same time
+    //     startDay && endDay && weeklyTiming[previousTime].push(`${startDay} - ${endDay}`);
 
-        return Object.keys(weeklyTiming).reduce((storeWeeklyTimings, timing) => {
-            const days = weeklyTiming[timing];
-            days.map((day) => storeWeeklyTimings[day] = timing);
-            return storeWeeklyTimings;
-        }, {})
-    }
+    //     return Object.keys(weeklyTiming).reduce((storeWeeklyTimings, timing) => {
+    //         const days = weeklyTiming[timing];
+    //         days.map((day) => storeWeeklyTimings[day] = timing);
+    //         return storeWeeklyTimings;
+    //     }, {})
+    // }
 
     function tConvert (time) {
         if (time) {
