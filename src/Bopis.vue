@@ -8,14 +8,14 @@
 import { defineComponent, onMounted, onUnmounted, ref } from 'vue';
 import axios from 'axios'
 import emitter from './event-bus';
-import { bopisModalInstance,isProductProrderedOrBackordered } from './bopisPDP';
+import { bopisModalInstance, isProductProrderedOrBackordered, isProductAvailable } from './bopisPDP';
 
 export default defineComponent({
   name: 'Bopis',
   setup() {
     const currentProduct = ref(null);
     const isProductAvailableForBopis = ref(false);
-    const productId = ref('');
+    const productSku = ref('');
 
     function openBopisModal (event) {
       // to stop event bubbling when clicking on the Check Stores button
@@ -58,10 +58,11 @@ export default defineComponent({
 
         // const cartForm = document.getElementsByClassName("hc-product-form")[0];
         // console.log('cartForm', JSON.stringify(cartForm))
-        productId.value = document.getElementsByName('id')[0].value;
+        productSku.value = document.querySelector("input.hc_product_sku").value;
       }
 
-      isProductAvailableForBopis.value = !isProductProrderedOrBackordered(currentProduct.value, productId.value)
+      isProductAvailableForBopis.value = isProductAvailable(currentProduct.value, productSku.value)
+      isProductAvailableForBopis.value = !isProductProrderedOrBackordered(currentProduct.value, productSku.value)
     })
 
     onUnmounted(() => {
