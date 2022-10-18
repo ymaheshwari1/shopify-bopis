@@ -16,10 +16,9 @@ const isProductAvailable = async function (product: any, variantSku: string) {
 }
 
 function getDay () {
-  let days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-  let date = new Date();
-  let dayName = days[date.getDay()];
-  return dayName;
+  const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+  const date = new Date();
+  return days[date.getDay()];
 }
 
 function openData (regularHours: any) {
