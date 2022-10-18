@@ -35,7 +35,9 @@
 <script>
 import { axios } from '@/api';
 import emitter from '@/event-bus';
-import { defineComponent, onMounted, ref } from 'vue';
+import { defineComponent, onMounted, onUnmounted, reactive, ref } from 'vue';
+import serialize from "form-serialize"
+import { bopisButtonInstance, isProductProrderedOrBackordered } from '@/bopisPDP';
 
 export default defineComponent({
   name: 'StoreLocator',
@@ -45,6 +47,11 @@ export default defineComponent({
     const stores = ref([]);
     const storesWithInventory = ref([]);
     const productId = ref(document.getElementsByName('id')[0].value)
+    const bopisCustomConfig = reactive({
+      'enableCartRedirection': true
+    });
+    const observer = ref()
+    const url = ref(window.location.href)
 
     async function checkInventory(payload) {
       // this will create a url param like &facilityId=store_1&facilityId=store_1 which is then sent
@@ -56,8 +63,6 @@ export default defineComponent({
       })
 
       let resp;
-
-      console.log(payload);
 
       // added try catch to handle network related errors
       try {
@@ -113,8 +118,6 @@ export default defineComponent({
               const payload = {"sku" : productId.value, "facilityId": storeCodes};
               const result = await checkInventory(payload) ?? [];
 
-              console.log(result);
-
               if (result.data.count > 0 && result.data.docs) {
                 storesWithInventory.value = stores.value.filter((location) => {
                   return result.data.docs.some((doc) => {
@@ -122,58 +125,55 @@ export default defineComponent({
                   })
                 })
               }
-
-              console.log(storesWithInventory.value);
             }
           })
           .catch((error) => console.error(error));
       })
     }
 
-    function updateCart(store) {
+    async function updateCart(store) {
 
-        const addToCartForm = document.getElementsByClassName('hc-product-form')[0];
-                
-        // let merchant define the behavior whenever pick up button is clicked, merchant can define an event listener for this event
-        // jQueryBopis(document).trigger('prePickUp');
+      const addToCartForm = document.getElementsByClassName('hc-product-form')[0];
 
-        // made the property hidden by adding underscore before the property name
-        const facilityIdInput = document.createElement('input')
-        facilityIdInput.id = 'hc-store-code'
-        facilityIdInput.name = 'properties[_pickupstore]'
-        facilityIdInput.value = store.storeCode ? store.storeCode : ''
-        facilityIdInput.type = 'hidden'
-        addToCartForm.append(facilityIdInput)
+      // let merchant define the behavior whenever pick up button is clicked, merchant can define an event listener for this event
+      // jQueryBopis(document).trigger('prePickUp');
 
-        const facilityNameInput = document.createElement('input')
-        facilityNameInput.id = 'hc-pickupstore-address'
-        facilityNameInput.name = 'properties[Pickup Store]'
-        facilityNameInput.value = store.storeName ? store.storeName : '' + store.address1 ? store.address1 : '' + store.city ? store.city : ''
-        facilityNameInput.type = 'hidden'
-        addToCartForm.append(facilityNameInput)
+      // made the property hidden by adding underscore before the property name
+      const facilityIdInput = document.createElement('input')
+      facilityIdInput.id = 'hc-store-code'
+      facilityIdInput.name = 'properties[_pickupstore]'
+      facilityIdInput.value = store.storeCode ? store.storeCode : ''
+      facilityIdInput.type = 'hidden'
+      addToCartForm.append(facilityIdInput)
 
-        console.log(addToCartForm);
+      const facilityNameInput = document.createElement('input')
+      facilityNameInput.id = 'hc-pickupstore-address'
+      facilityNameInput.name = 'properties[Pickup Store]'
+      facilityNameInput.value = store.storeName ? store.storeName : '' + store.address1 ? store.address1 : '' + store.city ? store.city : ''
+      facilityNameInput.type = 'hidden'
+      addToCartForm.append(facilityNameInput)
 
-        const formData = new FormData(addToCartForm);
+      const resp = await fetch(window.Shopify.routes.root + 'cart/add.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(serialize(addToCartForm, { hash: true }))
+      })
+      .then(response => {
+        return response.json();
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        return error
+      });
 
-        console.log(formData);
+      if(resp.id && bopisCustomConfig.enableCartRedirection) {
+        window.location.replace('/cart');
+      }
 
-        fetch(window.Shopify.routes.root + 'cart/add.js', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: formData
-        })
-        .then(response => {
-          return response.json();
-        })
-        .catch((error) => {
-          console.error('Error:', error);
-        });
-
-        facilityIdInput.remove();
-        facilityNameInput.remove();
+      facilityIdInput.remove();
+      facilityNameInput.remove();
     }
 
     function closeBopisModal(event) {
@@ -182,6 +182,25 @@ export default defineComponent({
 
     onMounted(() => {
       getStoreInformation();
+
+      // TODO: handle case of preorder/backorder check when changing variant
+      observer.value = new MutationObserver(() => {
+        if (window.location.href !== url.value) {
+          url.value = window.location.href;
+          queryString.value = '';
+          productId.value = document.getElementsByName('id')[0].value;
+          getStoreInformation();
+          bopisButtonInstance.isProductAvailableForBopis = !isProductProrderedOrBackordered(bopisButtonInstance.currentProduct, productId.value)
+        }
+
+        if (location.pathname.includes('cart')) {
+          document.querySelectorAll("[data-cart-item-property-name]:contains('pickupstore')").closest('li').hide();
+        }
+      }).observe(document, {subtree: true, childList: true});
+    })
+
+    onUnmounted(() => {
+      observer.value.destroy();
     })
 
     return {

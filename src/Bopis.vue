@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <button v-show="isProductAvailableForBopis" class="btn btn--full hc-open-bopis-modal" @click="openBopisModal">Pick Up Today</button>
+  <div v-show="isProductAvailableForBopis">
+    <button class="btn btn--full hc-open-bopis-modal" @click="openBopisModal">Pick Up Today</button>
   </div>
 </template>
 
@@ -8,7 +8,7 @@
 import { defineComponent, onMounted, onUnmounted, ref } from 'vue';
 import axios from 'axios'
 import emitter from './event-bus';
-import { bopisModalInstance } from './bopisPDP';
+import { bopisModalInstance,isProductProrderedOrBackordered } from './bopisPDP';
 
 export default defineComponent({
   name: 'Bopis',
@@ -44,13 +44,6 @@ export default defineComponent({
       currentProduct.value = product.data
     }
 
-    function isProductProrderedOrBackordered (variantId) {
-      if (currentProduct.value.tags.includes('HC:Pre-Order') || currentProduct.value.tags.includes('HC:Backorder')) {
-        return currentProduct.value.variants.find((variant) => variant.id == variantId.value).inventory_policy === 'continue'
-      }
-      return false;
-    }
-
     onMounted(async () => {
       emitter.on('closeBopisModal', closeBopisModal)
 
@@ -68,9 +61,7 @@ export default defineComponent({
         productId.value = document.getElementsByName('id')[0].value;
       }
 
-      if(!isProductProrderedOrBackordered(productId)) {
-        isProductAvailableForBopis.value = true
-      }
+      isProductAvailableForBopis.value = !isProductProrderedOrBackordered(currentProduct.value, productId.value)
     })
 
     onUnmounted(() => {
@@ -79,6 +70,7 @@ export default defineComponent({
 
     return {
       closeBopisModal,
+      currentProduct,
       openBopisModal,
       isProductAvailableForBopis
     }
