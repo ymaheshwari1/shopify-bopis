@@ -15,7 +15,7 @@
             <div id="hc-details-column">
               <h4 class="hc-store-title" v-if="store.storeName">{{ store.storeName }}</h4>
               <p v-if="store.address1">{{ store.address1 }}</p>
-              <p>{{ store.city ? store.city : '' }} {{ store.stateCode ? store.stateCode : '' }} {{ store.postalCode ? ', ' + store.postalCode : '' }} {{ store.countryCode ? store.countryCode : '' }}</p>
+              <p>{{ store.city ? store.city : '' }} {{ store.stateCode ? store.stateCode : '' }} {{ store.postalCode ? store.postalCode : '' }} {{ store.countryCode ? store.countryCode : '' }}</p>
             </div>
             <div id="hc-details-column">
               <p>In stock</p>
@@ -80,6 +80,7 @@ export default defineComponent({
 
     function getStoreInformation () {
       storesWithInventory.value = [];
+      productSku.value = document.querySelector("input.hc_product_sku").textContent.length > 0 ? document.querySelector("input.hc_product_sku").textContent : document.querySelector("input.hc_product_sku").value;
 
       const payload = {
         viewSize: 100
@@ -206,7 +207,6 @@ export default defineComponent({
         if (window.location.href !== url.value) {
           url.value = window.location.href;
           queryString.value = '';
-          productSku.value = document.querySelector("input.hc_product_sku").value;
           geoLocation.latitude = ''
           geoLocation.longitude = ''
           await getCurrentLocation();
