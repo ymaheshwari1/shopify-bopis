@@ -3,16 +3,15 @@ import Bopis from './Bopis.vue'
 import BopisModal from './BopisModal.vue'
 
 const isProductProrderedOrBackordered = function (product: any, variantSku: string) {
-  console.log('product', product)
   if (product.tags.includes('HC:Pre-Order') || product.tags.includes('HC:Backorder')) {
-    return product.variants.find((variant: any) => variant.sku == variantSku).inventory_policy === 'continue'
+    return product.variants.find((variant: any) => variant.sku == variantSku).available
   }
   return false;
 }
 
-const isProductAvailable = async function (product: any, variantSku: string) {
-  const hasInventoryOnShopify = +(document.querySelector("input.hc_inventory") as HTMLInputElement).value > 0
-  return !!product && (hasInventoryOnShopify || product.variants.find((variant: any) => variant.sku == variantSku).inventory_policy === 'continue')
+const isProductAvailable = function (product: any, variantSku: string) {
+  const hasInventoryOnShopify = +((document.querySelector("input.hc_inventory") as HTMLInputElement).value) > 0
+  return !!product && (hasInventoryOnShopify || product.variants.find((variant: any) => variant.sku == variantSku).available)
 }
 
 function getDay () {

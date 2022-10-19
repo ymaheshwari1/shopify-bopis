@@ -55,14 +55,10 @@ export default defineComponent({
 
       if(location.pathname.includes('products')) {
         await getCurrentProduct();
-
-        // const cartForm = document.getElementsByClassName("hc-product-form")[0];
-        // console.log('cartForm', JSON.stringify(cartForm))
         productSku.value = document.querySelector("input.hc_product_sku").textContent.length > 0 ? document.querySelector("input.hc_product_sku").textContent : document.querySelector("input.hc_product_sku").value;
       }
 
-      isProductAvailableForBopis.value = isProductAvailable(currentProduct.value, productSku.value)
-      isProductAvailableForBopis.value = !isProductProrderedOrBackordered(currentProduct.value, productSku.value)
+      isProductAvailableForBopis.value = isProductAvailable(currentProduct.value, productSku.value) && !isProductProrderedOrBackordered(currentProduct.value, productSku.value)
     })
 
     onUnmounted(() => {
