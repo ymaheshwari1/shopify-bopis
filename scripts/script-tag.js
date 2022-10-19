@@ -595,7 +595,7 @@
     }
 
     function getDay () {
-        let days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        let days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         let date = new Date();
         let dayName = days[date.getDay()];
         return dayName;
