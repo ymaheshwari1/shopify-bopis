@@ -35,7 +35,7 @@ export default defineComponent({
 
       bopisModalInstance.isStoreLocatorOpened = false;
 
-      // add overflow style to disable background scroll when modal is opened
+      // add overflow style to enable scroll when modal is closed
       document.getElementsByTagName("body")[0].style.overflow = 'scroll'
     }
 

@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <div id="hc-backdrop" v-show="isStoreLocatorOpened" />
-    <StoreLocator ref="hcStoreLocator" v-show="isStoreLocatorOpened"/>
+  <div v-show="isStoreLocatorOpened">
+    <div id="hc-backdrop" />
+    <StoreLocator ref="hcStoreLocator" />
   </div>
 </template>
 
