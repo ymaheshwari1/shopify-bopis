@@ -895,6 +895,12 @@
         // if the customerId in DOM is different from current customer id then fetch the preferred store
         if(jQueryBopis && jQueryBopis("#hc-customer-id").val() && jQueryBopis("#hc-customer-id").val() !== customerId) {
             customerId = jQueryBopis("#hc-customer-id").val();
+
+            // added check for shopId as on initial load the shopify-features does not contain data and loads data after some specific time and thus checking for shopId again if shopId is not found initially
+            if(!shopId) {
+                shopId = JSON.parse(jQueryBopis('#shopify-features').text()).shopId;
+            }
+
             if (customerId && shopId) {
                 const customerStoreResp = await getCustomerPreferredStore();
                 if (customerStoreResp.customer && customerStoreResp.customer.result === 'success') {
