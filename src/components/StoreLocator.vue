@@ -211,7 +211,7 @@ export default defineComponent({
           geoLocation.longitude = ''
           await getCurrentLocation();
           getStoreInformation();
-          bopisButtonInstance.isProductAvailableForBopis = isProductAvailable(bopisButtonInstance.currentProduct, productSku.value) && !isProductProrderedOrBackordered(bopisButtonInstance.currentProduct, productSku.value)
+          bopisButtonInstance.isProductAvailableForBopis = isProductAvailable(bopisButtonInstance.currentProduct, productSku.value) ? isProductAvailable(bopisButtonInstance.currentProduct, productSku.value) : !isProductProrderedOrBackordered(bopisButtonInstance.currentProduct, productSku.value)
         }
 
         if (window.location.pathname.includes('cart')) {

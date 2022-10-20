@@ -15,6 +15,9 @@ module.exports = {
     optimization: {
       splitChunks: false
     },
+    output: {
+      filename: 'js/script-bopis.min.js'
+    }
   },
   css: {
     extract: false

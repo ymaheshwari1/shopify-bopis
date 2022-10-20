@@ -58,7 +58,7 @@ export default defineComponent({
         productSku.value = document.querySelector("input.hc_product_sku").textContent.length > 0 ? document.querySelector("input.hc_product_sku").textContent : document.querySelector("input.hc_product_sku").value;
       }
 
-      isProductAvailableForBopis.value = isProductAvailable(currentProduct.value, productSku.value) && !isProductProrderedOrBackordered(currentProduct.value, productSku.value)
+      isProductAvailableForBopis.value = isProductAvailable(currentProduct.value, productSku.value) ? isProductAvailable(currentProduct.value, productSku.value) : !isProductProrderedOrBackordered(currentProduct.value, productSku.value)
     })
 
     onUnmounted(() => {
