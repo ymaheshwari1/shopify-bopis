@@ -61,7 +61,7 @@ p {
     position: absolute;
     z-index: 2001;
     left: 0;
-    width: 150%;
+    width: 40vw;
 }
 
 .hc-store-dropdown-content {
