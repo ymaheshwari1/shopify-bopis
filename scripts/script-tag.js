@@ -592,7 +592,7 @@
                         return doc.facilityId === location.storeCode && doc.atp > 0;
                     })
                 })
-
+                localStorage.setItem('stores', JSON.stringify(result));
                 updateCurrentStoreInformation();
             }
             stores = storeInformation
