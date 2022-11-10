@@ -435,7 +435,7 @@
         addToCartForm.append(facilityNameInput)
 
         // added the valid time for item untill which the item will be considered as pickup item, and once time is passed the item will no loonger be considered as pickup item
-        let validTill = jQueryBopis(`<input id="hc-valid-till" name="properties[Valid Till]" value="${new Date(new Date().getTime() + 3*60*60*1000).toLocaleString([], {hour12: 'true'})}" type="hidden"/>`)
+        let validTill = jQueryBopis(`<input id="hc-valid-till" name="properties[Valid Till]" value="${new Date(new Date().getTime() + 3*60*60*1000).toLocaleString('en-US', {year:'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: 'true'})}" type="hidden"/>`)
         addToCartForm.append(validTill)
 
         // using the cart add endpoint to add the product to cart, as using the theme specific methods is not recommended.
@@ -596,7 +596,14 @@
                         return doc.facilityId === location.storeCode && doc.atp > 0;
                     })
                 })
-                localStorage.setItem('stores', JSON.stringify(result));
+
+                if (localStorage.getItem('stores')) {
+                    let storedStores = JSON.parse(localStorage.getItem('stores'))
+                    let storeIds = result.map(store => store.storeCode);
+                    localStorage.setItem('stores', JSON.stringify([...result, ...storedStores.filter(store => !storeIds.includes(store.storeCode))]));
+                } else {
+                    localStorage.setItem('stores', JSON.stringify(result));
+                }
                 updateCurrentStoreInformation();
             }
             stores = storeInformation
@@ -811,7 +818,7 @@
         addToCartForm.append(facilityNameInput)
 
         // added the valid time for item untill which the item will be considered as pickup item, and once time is passed the item will no loonger be considered as pickup item
-        let validTill = jQueryBopis(`<input id="hc-valid-till" name="properties[Valid Till]" value="${new Date(new Date().getTime() + 3*60*60*1000).toLocaleString([], {hour12: 'true'})}" type="hidden"/>`)
+        let validTill = jQueryBopis(`<input id="hc-valid-till" name="properties[Valid Till]" value="${new Date(new Date().getTime() + 3*60*60*1000).toLocaleString('en-US', {year:'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: 'true'})}" type="hidden"/>`)
         addToCartForm.append(validTill)
 
         // using the cart add endpoint to add the product to cart, as using the theme specific methods is not recommended.
