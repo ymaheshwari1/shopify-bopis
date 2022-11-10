@@ -10,7 +10,6 @@
 
     // stored mapping as we are not getting correct store name in the response
     let storeNameMapping = {
-
     }
 
     // TODO Generate instance specific code URL in FTL. Used with <#noparse> after this code so that `` code is escaped
@@ -435,6 +434,10 @@
         let facilityNameInput = jQueryBopis(`<input id="hc-pickupstore-address" name="properties[Pickup Store]" value="${store.storeName ? store.storeName : ''} ${store.address1 ? `, ${store.address1}` : ''} ${store.city ? `, ${store.city}` : ''}" type="hidden"/>`)
         addToCartForm.append(facilityNameInput)
 
+        // added the valid time for item untill which the item will be considered as pickup item, and once time is passed the item will no loonger be considered as pickup item
+        let validTill = jQueryBopis(`<input id="hc-valid-till" name="properties[Valid Till]" value="${new Date(new Date().getTime() + 3*60*60*1000).toLocaleString([], {hour12: 'true'})}" type="hidden"/>`)
+        addToCartForm.append(validTill)
+
         // using the cart add endpoint to add the product to cart, as using the theme specific methods is not recommended.
         jQueryBopis.ajax({
             type: "POST",
@@ -457,6 +460,7 @@
 
         facilityIdInput.remove();
         facilityNameInput.remove();
+        validTill.remove();
     }
 
     function getStoreInformation (queryString) {
@@ -806,6 +810,10 @@
         let facilityNameInput = jQueryBopis(`<input id="hc-pickupstore-address" name="properties[Pickup Store]" value="${store.storeName ? store.storeName : ''} ${store.address1 ? `, ${store.address1}` : ''} ${store.city ? `, ${store.city}` : ''}" type="hidden"/>`)
         addToCartForm.append(facilityNameInput)
 
+        // added the valid time for item untill which the item will be considered as pickup item, and once time is passed the item will no loonger be considered as pickup item
+        let validTill = jQueryBopis(`<input id="hc-valid-till" name="properties[Valid Till]" value="${new Date(new Date().getTime() + 3*60*60*1000).toLocaleString([], {hour12: 'true'})}" type="hidden"/>`)
+        addToCartForm.append(validTill)
+
         // using the cart add endpoint to add the product to cart, as using the theme specific methods is not recommended.
         jQueryBopis.ajax({
             type: "POST",
@@ -828,6 +836,7 @@
 
         facilityIdInput.remove();
         facilityNameInput.remove();
+        validTill.remove();
     }
 
     async function getCustomerPreferredStore() {
