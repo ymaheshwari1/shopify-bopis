@@ -229,6 +229,60 @@
         })
     }
 
+    function displayStores() {
+        jQueryBopis('.hc-store-information').empty();
+        const currentStore = getUserStorePreference();
+        const userHomeStore = stores.response.docs.find((store) => store.storeCode === currentStore);
+        const otherStores = stores.response.docs.filter((store) => store.storeCode !== currentStore);
+
+        if (userHomeStore) {
+            let $storeCard = jQueryBopis('<div id="hc-store-card"></div>');
+            let storeInformationCard = jQueryBopis(`
+            <div class="hc-store-title"><h4 class="hc-font-m">${getStoreName(userHomeStore)}</h4>
+                <span>${getStoreDistance(userHomeStore)}</span>
+            </div>
+            <div>
+                <p>${userHomeStore.address1 ? userHomeStore.address1 : ''}</p><p>${userHomeStore.city ? userHomeStore.city : ''}${userHomeStore.stateCode ? `, ${userHomeStore.stateCode}` : ''}${userHomeStore.postalCode ? `, ${userHomeStore.postalCode}` : ''}${userHomeStore.countryCode ? `, ${userHomeStore.countryCode}` : ''}</p>
+                <p>${userHomeStore.storePhone ? userHomeStore.storePhone : ''}</p><p>${ openData(userHomeStore.timings).open ? 'Open Today: ' + openData(userHomeStore.timings).open + ' - ': ''} ${ openData(userHomeStore.timings).close ? openData(userHomeStore.timings).close : ''}</p>
+            </div>`);
+
+            $storeCard.append(storeInformationCard);
+
+            let $lineBreak = jQueryBopis('<hr/>')
+            $storeCard.append($lineBreak);
+
+            jQueryBopis('.hc-store-information').append($storeCard);
+        }
+
+        if (otherStores.length) {
+            let $otherStoresTitle = jQueryBopis(`<h2 class="hc-store-dropdown-title hc-font-xl">${userHomeStore ? 'Other Stores:' : 'Select a Store'}</h2>`);
+            jQueryBopis('.hc-store-information').append($otherStoresTitle);
+        }
+
+        otherStores.map((store) => {
+            let $storeDropdownCard = jQueryBopis('<div id="hc-store-card"></div>');
+            let $storeInformationCard = jQueryBopis(`
+            <div class="hc-store-title"><h4 class="hc-font-m">${getStoreName(store)}</h4>
+                <span>${getStoreDistance(store)}</span>
+            </div>
+            <div>
+                <p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''}${store.stateCode ? `, ${store.stateCode}` : ''}${store.postalCode ? `, ${store.postalCode}` : ''}${store.countryCode ? `, ${store.countryCode}` : ''}</p>
+                <p>${store.storePhone ? store.storePhone : ''}</p><p>${ openData(store.timings).open ? 'Open Today: ' + openData(store.timings).open + ' - ': ''} ${ openData(store.timings).close ? openData(store.timings).close : ''}</p>
+            </div>`);
+
+            let $setAsHomeStoreButton = jQueryBopis('<div class="hc-home-store-dropdown-button hc-pointer" style="color: #C59A2A">SET AS MY STORE</div>');
+            $setAsHomeStoreButton.on("click", setUserStorePreference.bind(null, store));
+
+            $storeDropdownCard.append($storeInformationCard);
+            $storeDropdownCard.append($setAsHomeStoreButton);
+
+            let $lineBreak = jQueryBopis('<hr/>')
+            $storeDropdownCard.append($lineBreak);
+
+            jQueryBopis('.hc-store-information').append($storeDropdownCard);
+        })
+    }
+
     async function displayStoresToSelect() {
         stores = await getStoreInformation().then(data => data).catch(err => err);
 
@@ -236,6 +290,7 @@
             stores.response.docs.map((store) => {
                 store.timings = getStoreTiming(store);
             })
+            displayStores();
             displayStoresInDropdown();
         }
 
@@ -328,6 +383,7 @@
 
         updateCurrentStoreInformation();
         displayStoresInDropdown();
+        displayStores();
         const eventTargetClass = jQueryBopis(event.target)[0].className;
         if (eventTargetClass.includes("hc-home-store-pdp-button")) {
             closeBopisSelectorInline();
@@ -909,12 +965,19 @@
 
     // TODO move it to intialise block
     // To check whether the url has changed or not, for making sure that the variant is changed.
-    let url = location.href; 
+    let url = location.href;
+    let currentHomeStore = getUserStorePreference();
     new MutationObserver(async () => {
         if (location.href !== url) {
             url = location.href;
             updateCurrentStoreInformation();
             initialiseBopis();
+        }
+
+        // to fetch the stores again whenever current store changes, as the distance between stores is calculated on the basis of current store
+        if (currentHomeStore !== getUserStorePreference()) {
+            currentHomeStore = getUserStorePreference();
+            await displayStoresToSelect();
         }
 
         if (jQueryBopis && productId && jQueryBopis('div[id^=ProductSection-]').length > 1 && jQueryBopis(`div[id='ProductSection-${productId}']`) && jQueryBopis(`div[id='ProductSection-${productId}']`)[0] && !jQueryBopis(`div[id='ProductSection-${productId}']`)[0].className.split(' ').includes('active')) {
