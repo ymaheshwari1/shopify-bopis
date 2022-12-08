@@ -141,6 +141,7 @@
         // defined the distance to find the stores in this much radius area
         // viewSize is used to define the number of stores to fetch
         const payload = {
+            filters: ["storeType: WAREHOUSE"],
             viewSize: 20
         }
 
@@ -158,6 +159,9 @@
                 url: `${baseUrl}/api/storeLookup`,
                 crossDomain: true,
                 data: JSON.stringify(payload),
+                headers: {
+                    "Content-Type": "application/json"
+                },
                 success: function (res) {
                     resolve(res)
                 },
@@ -262,6 +266,7 @@
                 isInventoryAvailable = true
             }
 
+            // returning storeLookup response as assuming there will be only a single store
             return storeInformation.response.docs;
         }
 
