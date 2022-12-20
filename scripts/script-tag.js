@@ -145,7 +145,7 @@
                         <button type="submit" class="btn hc-bopis-pick-up-button">Find Stores</button>
                     </form>
                     <div class="hc-store-information"></div>
-                    <p class="hc-store-not-found"></p>
+                    <p class="hc-text hc-store-not-found"></p>
                 </div>
             </div>`);
 
@@ -329,7 +329,7 @@
         // TODO Handle it in a better way
         // The content of error is not removed and appended to last error message
         jQueryBopis('.hc-store-not-found').remove();
-        jQueryBopis('.hc-modal-content').append(jQueryBopis('<p class="hc-store-not-found"></p>'));
+        jQueryBopis('.hc-modal-content').append(jQueryBopis('<p class="hc-text hc-store-not-found"></p>'));
         const hcModalContent = jQueryBopis('.hc-modal-content')
     
         //check for result count, result count contains the number of stores count in result
@@ -339,14 +339,14 @@
                 let $storeCard = jQueryBopis('<div id="hc-store-card"></div>');
                 let $storeInformationCard = jQueryBopis(`
                 <div id="hc-store-details">
-                    <div id="hc-details-column"><h4 class="hc-store-title">${store.storeName ? store.storeName : ''}</h4><p>${store.address1 ? store.address1 : ''}</p><p>${store.city ? store.city : ''} ${store.stateCode ? `, ${store.stateCode}` : ''} ${store.postalCode ? `, ${store.postalCode}` : ''} ${store.countryCode ? `, ${store.countryCode}` : ''}</p></div>
-                    <div id="hc-details-column"><p>In stock</p><p>${store.storePhone ? store.storePhone : ''}</p><p>${ store.regularHours ? 'Open Today: ' + tConvert(openData(store.regularHours).openTime) + ' - ': ''} ${store.regularHours ? tConvert(openData(store.regularHours).closeTime) : ''}</p></div>
+                    <div id="hc-details-column"><h4 class="hc-store-title">${store.storeName ? store.storeName : ''}</h4><p class="hc-text">${store.address1 ? store.address1 : ''}</p><p class="hc-text">${store.city ? store.city : ''} ${store.stateCode ? `, ${store.stateCode}` : ''} ${store.postalCode ? `, ${store.postalCode}` : ''} ${store.countryCode ? `, ${store.countryCode}` : ''}</p></div>
+                    <div id="hc-details-column"><p class="hc-text">In stock</p><p class="hc-text">${store.storePhone ? store.storePhone : ''}</p><p class="hc-text">${ store.regularHours ? 'Open Today: ' + tConvert(openData(store.regularHours).openTime) + ' - ': ''} ${store.regularHours ? tConvert(openData(store.regularHours).closeTime) : ''}</p></div>
                 </div>`);
 
                 let $pickUpButton = jQueryBopis('<button class="btn btn--secondary-accent hc-store-pick-up-button">Pick Up Here</button>');
                 $pickUpButton.on("click", updateCart.bind(null, store));
 
-                let $lineBreak = jQueryBopis('<hr/>')
+                let $lineBreak = jQueryBopis('<hr class="hc-horizontal-rule"/>')
 
                 $storeCard.append($storeInformationCard);
                 $storeCard.append($pickUpButton);
