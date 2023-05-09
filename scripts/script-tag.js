@@ -206,15 +206,14 @@
     }
 
     async function checkInventory(payload) {
-
-        // this will create a url param like &facilityId=store_1&facilityId=store_1 which is then sent
-        // with the url, used this approach as unable to send array in the url params and also unable to
-        // pass body as the request type is GET.
-        let paramFacilityId = payload.facilityIds.reduce((paramFacilityId ,facilityId) => {
-            paramFacilityId += `&facilityId=${facilityId}`
-            return paramFacilityId
-        }, '')
-        const viewSize = payload.facilityIds.length
+        const params = {
+            filters: {
+                sku: payload.sku,
+                facilityId: payload.facilityIds,
+                facilityId_op: 'in'
+            },
+            viewSize: payload.facilityIds.length
+        }
 
         let resp;
 
@@ -222,9 +221,11 @@
         try {
             resp = await new Promise(function(resolve, reject) {
                 jQueryBopis.ajax({
-                    type: 'GET',
-                    url: `${baseUrl}/api/checkInventory?sku=${payload.sku}${paramFacilityId}&viewSize=${viewSize}`,
+                    type: 'POST',
+                    url: `${baseUrl}/api/checkInventory`,
                     crossDomain: true,
+                    data: JSON.stringify(params),
+                    dataType: 'JSON',
                     headers: {
                         'Content-Type': 'application/json'
                     },
